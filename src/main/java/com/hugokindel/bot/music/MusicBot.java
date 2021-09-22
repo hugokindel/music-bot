@@ -93,14 +93,24 @@ public class MusicBot extends BaseProgram {
                 mainLogic();
 
                 //if (System.getenv("FORX_HOST_ID") == null) {
-                    while (true) {
-                        String command = In.nextString(/*"Enter a command (e.g: help): "*/"");
+                    //while (true) {
+                    //    String command = In.nextString(/*"Enter a command (e.g: help): "*/"");
 
-                        if (command.equals("exit")) {
-                            break;
-                        }
-                    }
+                    //    if (command.equals("exit")) {
+                    //        break;
+                    //    }
+                   // }
                 //}
+
+                while (true) {
+                    System.out.println("always running program ==> " + Calendar.getInstance().getTime());
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+
+                        e.printStackTrace();
+                    }
+                }
 
                 destroy();
             } catch (Exception e) {
