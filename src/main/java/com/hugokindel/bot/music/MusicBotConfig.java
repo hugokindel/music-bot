@@ -29,4 +29,7 @@ public class MusicBotConfig {
 
     @JsonSerializable(necessary = false)
     public String spotifySecret = "";
+
+    @JsonSerializable(necessary = false)
+    public String eventName = "";
 }

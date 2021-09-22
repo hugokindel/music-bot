@@ -3,6 +3,7 @@ package com.hugokindel.bot.music;
 import com.hugokindel.bot.music.audio.GuildMusicManager;
 import com.hugokindel.bot.music.audio.PlayerManager;
 import com.hugokindel.bot.music.command.*;
+import com.hugokindel.bot.music.utility.DiscordUtil;
 import com.hugokindel.common.BaseProgram;
 import com.hugokindel.common.cli.option.annotation.Command;
 import com.hugokindel.common.cli.print.In;
@@ -18,6 +19,7 @@ import net.azzerial.slash.SlashClientBuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.TextChannel;
 
 import java.io.IOException;
 import java.util.*;
@@ -141,6 +143,8 @@ public class MusicBot extends BaseProgram {
                 .addCommand(new NowPlayingCommand())
                 .addCommand(new LoopCommand())
                 .addCommand(new InfoCommand())
+                .addCommand(new HelpCommand())
+                .addCommand(new VersionCommand())
                 .build();
 
         slash.getCommand("play").upsertGuild(config.guildId);
@@ -151,12 +155,18 @@ public class MusicBot extends BaseProgram {
         slash.getCommand("nowplaying").upsertGuild(config.guildId);
         slash.getCommand("loop").upsertGuild(config.guildId);
         slash.getCommand("info").upsertGuild(config.guildId);
+        slash.getCommand("help").upsertGuild(config.guildId);
+        slash.getCommand("version").upsertGuild(config.guildId);
 
         for (int i = 0; i < config.workerTokens.size(); i++) {
             workers.add(new Bot(Bot.Type.Worker, config.workerTokens.get(i), Activity.listening("rien")));
         }
 
         Out.println("Bot initialized.");
+
+        if (config.eventName.equals("welcome")) {
+            eventWelcome();
+        }
 
         if (!isInCloud) {
             Out.println("You can now enter commands.");
@@ -194,6 +204,7 @@ public class MusicBot extends BaseProgram {
             config.creatorId = System.getenv("FORX_CREATOR_ID");
             config.spotifyId = System.getenv("FORX_SPOTIFY_ID");
             config.spotifySecret = System.getenv("FORX_SPOTIFY_SECRET");
+            config.eventName = System.getenv("FORX_EVENT_NAME");
             isConfigured = true;
         } else if (Resources.getConfig().global.isEmpty()) {
             config = new MusicBotConfig();
@@ -212,5 +223,18 @@ public class MusicBot extends BaseProgram {
 
     public static MusicBot get() {
         return (MusicBot)BaseProgram.get();
+    }
+
+    public void eventWelcome() {
+        TextChannel channel = host.client.getTextChannelsByName("infos", false).get(0);
+
+        channel.sendMessage(
+            "Bonjour, je suis **FORX-BOT** !\n\n" +
+            "Je suis capable de jouer de la musique dans tous vos salon vocaux " +
+            "simultanément.\n\n" +
+            HelpCommand.getHelp() + "\n\n" +
+            "En cas de soucis, contactez " + DiscordUtil.mentionCreator() + ".\n" +
+            "Amusez-vous bien !"
+        ).queue();
     }
 }
