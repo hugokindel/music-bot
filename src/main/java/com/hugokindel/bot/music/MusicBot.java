@@ -103,9 +103,8 @@ public class MusicBot extends BaseProgram {
                 //}
 
                 while (true) {
-                    System.out.println("always running program ==> " + Calendar.getInstance().getTime());
                     try {
-                        Thread.sleep(2000);
+                        Thread.sleep(10000);
                     } catch (InterruptedException e) {
 
                         e.printStackTrace();
