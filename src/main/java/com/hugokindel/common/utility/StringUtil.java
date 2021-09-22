@@ -1,7 +1,6 @@
 package com.hugokindel.common.utility;
 
 import com.hugokindel.common.cli.print.Out;
-import jdk.internal.joptsimple.util.RegexMatcher;
 
 /** Utility functions for strings. */
 public class StringUtil {

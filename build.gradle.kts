@@ -95,7 +95,6 @@ var jvmOptions = mutableListOf<String>()
 // you need to use `chcp 65001` to enable unicode characters
 // (this is not an issue in distributed builds, only within gradle commands output).
 jvmOptions.add("-Dfile.encoding=utf-8")
-jvmOptions.add("-XDignore.symbol.file=true")
 // Pass an IDE name information to know within the engine's code if we are debugging within an IDE.
 if (project.gradle.startParameter.taskNames.contains("run") && System.getProperty("idea.vendor.name") == "JetBrains") {
     jvmOptions.add("-Dide=JetBrains")
