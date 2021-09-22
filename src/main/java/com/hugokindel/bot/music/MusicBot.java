@@ -71,6 +71,10 @@ public class MusicBot extends BaseProgram {
 
     @Override
     protected int programMain(String[] args) {
+        if (System.getenv("FORX_HOST_ID") != null) {
+            Out.canUseAnsiCode(false);
+        }
+
         Out.println("---- MUSIC-BOT ----");
         Out.println("Version: 1.0.0     ");
         Out.println("Made by Forx       ");
