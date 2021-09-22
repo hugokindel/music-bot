@@ -111,7 +111,7 @@ public class MusicBot extends BaseProgram {
                     }
                 }
 
-                destroy();
+                //destroy();
             } catch (Exception e) {
                 e.printStackTrace();
             }
