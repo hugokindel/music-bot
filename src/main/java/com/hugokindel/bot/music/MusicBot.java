@@ -92,11 +92,13 @@ public class MusicBot extends BaseProgram {
 
                 mainLogic();
 
-                while (true) {
-                    String command = In.nextString(/*"Enter a command (e.g: help): "*/"");
+                if (System.getenv("FORX_HOST_ID") == null) {
+                    while (true) {
+                        String command = In.nextString(/*"Enter a command (e.g: help): "*/"");
 
-                    if (command.equals("exit")) {
-                        break;
+                        if (command.equals("exit")) {
+                            break;
+                        }
                     }
                 }
 
