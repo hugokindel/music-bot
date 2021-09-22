@@ -115,4 +115,78 @@ public class PlayCommand {
             }
         });
     }
+
+    public static void play(Guild guild, VoiceChannel voiceChannel, MessageChannel messageChannel, String query) {
+        ChannelMusicManager channelManager = MusicBot.get().getGuildManager(guild).getChannelManager(voiceChannel);
+        channelManager.messageChannel = messageChannel;
+
+        String search = query;
+
+        while (search.charAt(0) == ' ') {
+            search = search.substring(1);
+        }
+
+        boolean isUrl = StringUtil.isUrl(search);
+
+        if (isUrl) {
+            if (search.contains("spotify.com")) {
+                MusicBot.get().connectToSpotifyApi();
+
+                try {
+                    String[] initialParsed = search.split("/track/");
+                    if (initialParsed.length == 2) {
+                        String[] finalParsed = initialParsed[1].split("\\?");
+                        Track request = MusicBot.get().spotifyApi.getTrack(finalParsed[0]).build().execute();
+                        search = "ytsearch: " + request.getArtists()[0].getName() + " " + request.getName();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        } else {
+            if (search.startsWith("spsearch:")) {
+                MusicBot.get().connectToSpotifyApi();
+
+                try {
+                    Paging<Track> tracks = MusicBot.get().spotifyApi.searchTracks(search.substring(9)).build().execute();
+
+                    if (tracks.getItems().length > 0) {
+                        search = "ytsearch: " + tracks.getItems()[0].getArtists()[0].getName() + " " + tracks.getItems()[0].getName();
+                    } else {
+                        return;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else if (!search.startsWith("ytsearch:") && !search.startsWith("scsearch:")) {
+                search = "ytsearch:" + search;
+            }
+        }
+
+        MusicBot.get().playerManager.loadItemOrdered(channelManager, search, new AudioLoadResultHandler() {
+            @Override
+            public void trackLoaded(AudioTrack track) {
+                if (!channelManager.connected) {
+                    channelManager.connect();
+                }
+
+                channelManager.trackScheduler.queue(track);
+            }
+
+            @Override
+            public void playlistLoaded(AudioPlaylist playlist) {
+                trackLoaded(playlist.getTracks().get(0));
+            }
+
+            @Override
+            public void noMatches() {
+
+            }
+
+            @Override
+            public void loadFailed(FriendlyException exception) {
+                exception.printStackTrace();
+            }
+        });
+    }
 }
