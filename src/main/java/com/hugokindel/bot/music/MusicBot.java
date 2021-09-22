@@ -92,7 +92,7 @@ public class MusicBot extends BaseProgram {
 
                 mainLogic();
 
-                if (System.getenv("FORX_HOST_ID") == null) {
+                //if (System.getenv("FORX_HOST_ID") == null) {
                     while (true) {
                         String command = In.nextString(/*"Enter a command (e.g: help): "*/"");
 
@@ -100,7 +100,7 @@ public class MusicBot extends BaseProgram {
                             break;
                         }
                     }
-                }
+                //}
 
                 destroy();
             } catch (Exception e) {
