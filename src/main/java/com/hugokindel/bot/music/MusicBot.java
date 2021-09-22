@@ -170,7 +170,18 @@ public class MusicBot extends BaseProgram {
     }
 
     private void loadConfig() {
-        if (Resources.getConfig().global.isEmpty()) {
+        if (System.getenv("FORX_HOST_ID") != null) {
+            config = new MusicBotConfig();
+            config.hostId = System.getenv("FORX_HOST_ID");
+            config.hostToken = System.getenv("FORX_HOST_TOKEN");
+            config.workerIds = Arrays.asList(System.getenv("FORX_WORKER_IDS").split(" "));
+            config.workerTokens = Arrays.asList(System.getenv("FORX_WORKER_TOKENS").split(" "));
+            config.guildId = System.getenv("FORX_GUILD_ID");
+            config.creatorId = System.getenv("FORX_CREATOR_ID");
+            config.spotifyId = System.getenv("FORX_SPOTIFY_ID");
+            config.spotifySecret = System.getenv("FORX_SPOTIFY_SECRET");
+            isConfigured = true;
+        } else if (Resources.getConfig().global.isEmpty()) {
             config = new MusicBotConfig();
         } else {
             config = Json.deserialize(Resources.getConfig().global, MusicBotConfig.class);

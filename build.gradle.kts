@@ -1,8 +1,14 @@
-import org.gradle.internal.os.OperatingSystem
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
+application {
+    mainClassName = "com.hugokindel.bot.music.Main"
+
+}
 
 plugins {
     java
     application
+    id("com.github.johnrengelman.shadow") version "6.1.0"
 }
 
 // Project variables.
@@ -59,6 +65,18 @@ tasks {
                 //"Main-Class" to "com.jagrosh.jmusicbot.JMusicBot"
             )
         }
+    }
+
+    named<ShadowJar>("shadowJar") {
+        archiveBaseName.set("shadow")
+        mergeServiceFiles()
+        manifest {
+            attributes(mapOf("Main-Class" to "com.hugokindel.bot.music.Main"))
+        }
+    }
+
+    build {
+        dependsOn(shadowJar)
     }
 }
 
