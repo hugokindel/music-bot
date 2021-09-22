@@ -25,7 +25,7 @@ public class HelpCommand {
                 "Voici les commandes dont je dispose:\n" +
                 "`/help`: affiche ce message d'aide.\n" +
                 "`/play <requête>`: joue le son voulu (ou le rajoute à la file d'attente).\n" +
-                "Il est possible de jouer des sons de YouTube, SoundCloud et Spotify.\n" +
+                "Il est possible de jouer des sons YouTube, SoundCloud, Spotify ainsi qu'un certains nombre de format audio si vous avez le lien du fichier (MP3, FLAC, WAV, MKV, MP4, OGG).\n" +
                 "Vous pouvez donner directement le lien d'un son à jouer.\n" +
                 "Ou vous pouvez donner une recherche qui sera effectué sur YouTube par défaut.\n" +
                 "Mais vous pouvez spécifier sur quel site faire une recherche à l'aide des préfix correspondant !\n" +

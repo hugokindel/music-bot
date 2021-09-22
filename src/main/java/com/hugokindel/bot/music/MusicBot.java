@@ -233,10 +233,10 @@ public class MusicBot extends BaseProgram {
         TextChannel channel = host.client.getTextChannelsByName("infos", false).get(0);
         channel.sendMessage(HelpCommand.getHelp()).queue();
 
-        Guild guild = host.client.getGuildById("890125294256680960");
+        Guild guild = host.client.getGuildById(config.guildId);
         assert guild != null;
         List<VoiceChannel> voiceChannels = guild.getVoiceChannels();
-        TextChannel textChannel = guild.getTextChannelById("890300346591768597");
+        TextChannel textChannel = guild.getTextChannelsByName("music", false).get(0);
         for (VoiceChannel voiceChannel : voiceChannels) {
             if (!voiceChannel.getName().equals("AFK")) {
                 PlayCommand.play(guild, voiceChannel, textChannel, "https://forx-bot.s3.eu-west-3.amazonaws.com/events/welcome-1.mp3");
