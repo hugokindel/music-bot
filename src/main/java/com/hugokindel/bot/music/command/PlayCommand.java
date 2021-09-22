@@ -1,9 +1,8 @@
-// TODO: Spotify support
-
 package com.hugokindel.bot.music.command;
 
 import com.hugokindel.bot.music.MusicBot;
 import com.hugokindel.bot.music.audio.ChannelMusicManager;
+import com.hugokindel.bot.music.utility.DiscordMessage;
 import com.hugokindel.bot.music.utility.DiscordUtil;
 import com.hugokindel.common.utility.StringUtil;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
@@ -15,9 +14,9 @@ import com.wrapper.spotify.model_objects.specification.Track;
 import net.azzerial.slash.annotations.Option;
 import net.azzerial.slash.annotations.OptionType;
 import net.azzerial.slash.annotations.Slash;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.VoiceChannel;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.interactions.Interaction;
 
 @Slash.Tag("play")
 @Slash.Command(name = "play", description = "Joue un son.", options = {
@@ -26,29 +25,20 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 public class PlayCommand {
     @Slash.Handler()
     public void callback(SlashCommandEvent event) {
-        assert event.getMember() != null;
+        handlePlay(new DiscordMessage(event));
+    }
 
-        Guild guild = event.getGuild();
-
-        if (guild == null) {
-            event.deferReply().setContent(DiscordUtil.mention(event.getMember()) + ", tu dois être dans un serveur pour appeler cette commande !").queue();
+    public static void handlePlay(DiscordMessage message) {
+        if (!DiscordUtil.checkInGuild(message) ||
+            !DiscordUtil.checkInVoiceChannel(message) ||
+            !DiscordUtil.checkHasOption(message)) {
             return;
         }
 
-        assert event.getMember().getVoiceState() != null;
-        assert event.getMember().getVoiceState().getChannel() != null;
+        ChannelMusicManager channelManager = MusicBot.get().getGuildManager(message.guild).getChannelManager(message.member.getVoiceState().getChannel());
+        channelManager.messageChannel = message.messageChannel;
 
-        VoiceChannel channel = event.getMember().getVoiceState().getChannel();
-
-        if (channel == null) {
-            event.deferReply().setContent(DiscordUtil.mention(event.getMember()) + ", tu dois être dans un salon audio pour appeler cette commande !").queue();
-            return;
-        }
-
-        ChannelMusicManager channelManager = MusicBot.get().getGuildManager(guild).getChannelManager(channel);
-        channelManager.messageChannel = event.getChannel();
-
-        String search = event.getOptions().get(0).getAsString();
+        String search = message.getOptionsAsOne();
 
         while (search.charAt(0) == ' ') {
             search = search.substring(1);
@@ -81,7 +71,7 @@ public class PlayCommand {
                     if (tracks.getItems().length > 0) {
                         search = "ytsearch: " + tracks.getItems()[0].getArtists()[0].getName() + " " + tracks.getItems()[0].getName();
                     } else {
-                        event.deferReply().setContent("Impossible de trouver le son voulu !").queue();
+                        message.sendAnswer("Impossible de trouver le son voulu !");
                         return;
                     }
                 } catch (Exception e) {
@@ -96,9 +86,9 @@ public class PlayCommand {
             @Override
             public void trackLoaded(AudioTrack track) {
                 if (!channelManager.trackScheduler.playing) {
-                    event.deferReply().setContent("Début de la lecture de `" + track.getInfo().title + "`\nDemandé par: " + DiscordUtil.mention(event.getMember())).queue();
+                    message.sendAnswerAskedBy("Début de la lecture de `" + track.getInfo().title + "`.");
                 } else {
-                    event.deferReply().setContent("Ajout à la file d'attente de `" + track.getInfo().title + "`\nDemandé par: " + DiscordUtil.mention(event.getMember())).queue();
+                    message.sendAnswerAskedBy("Ajout à la file d'attente de `" + track.getInfo().title + "`.");
                 }
 
                 if (!channelManager.connected) {
@@ -115,13 +105,13 @@ public class PlayCommand {
 
             @Override
             public void noMatches() {
-                event.deferReply().setContent("Impossible de trouver le son voulu !").queue();
+                message.sendAnswer("Impossible de trouver le son voulu !");
             }
 
             @Override
             public void loadFailed(FriendlyException exception) {
                 exception.printStackTrace();
-                event.deferReply().setContent("Impossible de jouer le son voulu !").queue();
+                message.sendAnswer("Impossible de jouer le son voulu !");
             }
         });
     }

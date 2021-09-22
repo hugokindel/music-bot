@@ -1,15 +1,14 @@
 package com.hugokindel.bot.music;
 
-import com.hugokindel.common.cli.print.Out;
+import com.hugokindel.bot.music.command.*;
+import com.hugokindel.bot.music.utility.DiscordMessage;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import javax.security.auth.login.LoginException;
@@ -42,20 +41,40 @@ public class Bot extends ListenerAdapter {
     }
 
     @Override
-    public void onGuildMessageReceived(GuildMessageReceivedEvent event)
+    public void onMessageReceived(MessageReceivedEvent event)
     {
         if (type == Type.Host) {
             if (event.getAuthor().isBot()) {
                 return;
             }
 
-            String command = event.getMessage().getContentRaw();
+            DiscordMessage message = new DiscordMessage(event);
 
-            while (command.charAt(0) == ' ') {
-                command = command.substring(1);
+            if (message.isCommand()) {
+                if (message.command.equals("help")) {
+                    HelpCommand.handleHelp(message);
+                } else if (message.command.equals("info")) {
+                    InfoCommand.handleInfo(message);
+                } else if (message.command.equals("loop")) {
+                    LoopCommand.handleLoop(message);
+                } else if (message.command.equals("nowplaying")) {
+                    NowPlayingCommand.handleNowPlaying(message);
+                } else if (message.command.equals("pause")) {
+                    PauseCommand.handlePause(message);
+                } else if (message.command.equals("play")) {
+                    PlayCommand.handlePlay(message);
+                } else if (message.command.equals("resume")) {
+                    ResumeCommand.handleResume(message);
+                } else if (message.command.equals("skip")) {
+                    SkipCommand.handleSkip(message);
+                } else if (message.command.equals("stop")) {
+                    StopCommand.handleStop(message);
+                } else if (message.command.equals("version")) {
+                    VersionCommand.handleVersion(message);
+                } else {
+                    UnknownCommand.handleUnknown(message);
+                }
             }
-
-            // TODO: Handle commands
         }
     }
 }

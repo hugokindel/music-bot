@@ -1,5 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
+// TODO: Fix this mess
+
 application {
     mainClassName = "com.hugokindel.bot.music.Main"
 

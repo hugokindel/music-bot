@@ -28,6 +28,8 @@ import java.util.*;
 public class MusicBot extends BaseProgram {
     public static final String VERSION = "0.1.0";
 
+    public static final String WANGA_ID = "578163510027223050";
+
     public boolean isConfigured;
 
     public MusicBotConfig config;
@@ -228,13 +230,6 @@ public class MusicBot extends BaseProgram {
     public void eventWelcome() {
         TextChannel channel = host.client.getTextChannelsByName("infos", false).get(0);
 
-        channel.sendMessage(
-            "Bonjour, je suis **FORX-BOT** !\n\n" +
-            "Je suis capable de jouer de la musique dans tous vos salon vocaux " +
-            "simultanément.\n\n" +
-            HelpCommand.getHelp() + "\n\n" +
-            "En cas de soucis, contactez " + DiscordUtil.mentionCreator() + ".\n" +
-            "Amusez-vous bien !"
-        ).queue();
+        channel.sendMessage(HelpCommand.getHelp()).queue();
     }
 }
