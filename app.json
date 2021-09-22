@@ -1,5 +1,5 @@
 {
     "name": "music-bot",
-    "description": "",
+    "description": "A Discord music bot.",
     "image": "heroku/gradle"
 }

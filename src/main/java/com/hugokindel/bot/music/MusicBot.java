@@ -3,7 +3,6 @@ package com.hugokindel.bot.music;
 import com.hugokindel.bot.music.audio.GuildMusicManager;
 import com.hugokindel.bot.music.audio.PlayerManager;
 import com.hugokindel.bot.music.command.*;
-import com.hugokindel.bot.music.utility.DiscordUtil;
 import com.hugokindel.common.BaseProgram;
 import com.hugokindel.common.cli.option.annotation.Command;
 import com.hugokindel.common.cli.print.In;
@@ -45,6 +44,8 @@ public class MusicBot extends BaseProgram {
 
     public ClientCredentials spotifyCredentials;
 
+    public boolean isInCloud;
+
     public void connectToSpotifyApi() {
         if (spotifyCredentials == null || spotifyCredentials.getExpiresIn() <= 0) {
             try {
@@ -72,6 +73,10 @@ public class MusicBot extends BaseProgram {
     @Override
     protected int programMain(String[] args) {
         if (System.getenv("FORX_HOST_ID") != null) {
+            isInCloud = true;
+        }
+
+        if (isInCloud) {
             Out.canUseAnsiCode(false);
         }
 
@@ -96,7 +101,7 @@ public class MusicBot extends BaseProgram {
 
                 mainLogic();
 
-                if (System.getenv("FORX_HOST_ID") == null) {
+                if (!isInCloud) {
                     while (true) {
                         String command = In.nextString(/*"Enter a command (e.g: help): "*/"");
 
@@ -152,7 +157,10 @@ public class MusicBot extends BaseProgram {
         }
 
         Out.println("Bot initialized.");
-        Out.println("You can now enter commands.");
+
+        if (!isInCloud) {
+            Out.println("You can now enter commands.");
+        }
     }
 
     private void destroy() throws InterruptedException {
@@ -176,7 +184,7 @@ public class MusicBot extends BaseProgram {
     }
 
     private void loadConfig() {
-        if (System.getenv("FORX_HOST_ID") != null) {
+        if (isInCloud) {
             config = new MusicBotConfig();
             config.hostId = System.getenv("FORX_HOST_ID");
             config.hostToken = System.getenv("FORX_HOST_TOKEN");
