@@ -87,27 +87,21 @@ public class Discord {
     }
 
     public static boolean checkIsAdmin(AnyMessage message) {
-        AtomicBoolean canRunCommand = new AtomicBoolean(false);
-
         if (message.user.getId().equals(MusicBot.get().config.creatorId)) {
-            canRunCommand.set(true);
+            return true;
         } else {
             try {
-                MusicBot.get().host.client.getGuildById(MusicBot.get().config.guildId).retrieveMemberById(message.user.getId()).queue(member -> {
-                    if (member.isOwner() || member.hasPermission(Permission.ADMINISTRATOR)) {
-                        canRunCommand.set(true);
-                    }
-                });
+                Member member = MusicBot.get().host.client.getGuildById(MusicBot.get().config.guildId).getMemberById(message.user.getId());
+
+                if (member.isOwner() || member.hasPermission(Permission.ADMINISTRATOR)) {
+                    return true;
+                }
             } catch (Exception ignored) {
 
             }
         }
 
-        if (!canRunCommand.get()) {
-            message.sendAnswerToUser("tu n'a pas les permissions pour appeler cette commande !");
-            return false;
-        }
-
-        return true;
+        message.sendAnswerToUser("tu n'a pas les permissions pour appeler cette commande !");
+        return false;
     }
 }
