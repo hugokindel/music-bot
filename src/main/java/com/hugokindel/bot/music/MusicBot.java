@@ -19,13 +19,16 @@ import com.wrapper.spotify.requests.authorization.client_credentials.ClientCrede
 import net.azzerial.slash.SlashClient;
 import net.azzerial.slash.SlashClientBuilder;
 import net.dv8tion.jda.api.OnlineStatus;
-import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.VoiceChannel;
+import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.exceptions.ErrorHandler;
+import net.dv8tion.jda.api.requests.ErrorResponse;
+import net.dv8tion.jda.api.requests.RestAction;
+import net.dv8tion.jda.api.requests.restaction.MessageAction;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Command(name = "bot", version = "0.1.0", description = "A bot for music streaming.")
 public class MusicBot extends BaseProgram {
@@ -114,6 +117,24 @@ public class MusicBot extends BaseProgram {
 
                 mainLogic();
 
+                if (!config.helpChannelId.isEmpty()) {
+                    TextChannel channel = host.client.getGuildById(config.guildId).getTextChannelById(config.helpChannelId);
+
+                    if (channel != null) {
+                        if (!config.helpMessageId.isEmpty()) {
+                            channel.editMessageById(config.helpMessageId, HelpCommand.getHelp()).queue(null, new ErrorHandler()
+                                    .ignore(ErrorResponse.INVALID_AUTHOR_EDIT)
+                                    .ignore(ErrorResponse.MISSING_ACCESS)
+                                    .ignore(ErrorResponse.UNKNOWN_CHANNEL)
+                                    .handle(ErrorResponse.UNKNOWN_MESSAGE, (e) -> {
+                                        channel.sendMessage(HelpCommand.getHelp()).queue();
+                                    }));
+                        } else {
+                            channel.sendMessage(HelpCommand.getHelp()).queue();
+                        }
+                    }
+                }
+
                 if (!isInCloud) {
                     while (true) {
                         String command = In.nextString(/*"Enter a command (e.g: help): "*/"");
@@ -128,23 +149,35 @@ public class MusicBot extends BaseProgram {
                     if (System.getenv("FORX_HEROKU_RESTART") != null) {
                         String[] split = System.getenv("FORX_HEROKU_RESTART").split(" ");
 
-                        if (split.length == 1) {
-                            Guild guild = host.client.getGuildById(config.guildId);
+                        long curSec = TimeUnit.MILLISECONDS.toSeconds(Instant.now().toEpochMilli());
 
-                            guild.retrieveMemberById(split[0]).queue(member -> {
-                                member.getUser().openPrivateChannel().queue(c -> {
-                                    c.sendMessage(
-                                            Discord.mention(split[0]) + ", le serveur a redémarré avec succès !"
-                                    ).queue();
+                        if (split.length == 2) {
+                            long oldSec = TimeUnit.MILLISECONDS.toSeconds(Long.parseLong(split[1]));
+                            long diff = curSec - oldSec;
+
+                            if (diff < 120) {
+                                Guild guild = host.client.getGuildById(config.guildId);
+
+                                guild.retrieveMemberById(split[0]).queue(member -> {
+                                    member.getUser().openPrivateChannel().queue(c -> {
+                                        c.sendMessage(
+                                                Discord.mention(split[0]) + ", le serveur a redémarré avec succès !"
+                                        ).queue();
+                                    });
                                 });
-                            });
-                        } else if (split.length == 3) {
-                            host.client.getGuildById(split[0]).getTextChannelById(split[1]).sendMessage(Discord.mention(split[2]) + ", le serveur a redémarré avec succès !").queue();
+                            }
+                        } else if (split.length == 4) {
+                            long oldSec = TimeUnit.MILLISECONDS.toSeconds(Long.parseLong(split[3]));
+                            long diff = curSec - oldSec;
+
+                            if (diff < 120) {
+                                host.client.getGuildById(split[0]).getTextChannelById(split[1]).sendMessage(Discord.mention(split[2]) + ", le serveur a redémarré avec succès !").queue();
+                            }
                         }
 
-                        HashMap<String, String> config = new HashMap<>();
+                        /*HashMap<String, String> config = new HashMap<>();
                         config.put("FORX_HEROKU_RESTART", null);
-                        herokuAPI.updateConfig(MusicBot.get().config.herokuAppName, config);
+                        herokuAPI.updateConfig(MusicBot.get().config.herokuAppName, config);*/
                     }
                 }
             } catch (Exception e) {
@@ -249,6 +282,8 @@ public class MusicBot extends BaseProgram {
                 config.spotifySecret = System.getenv("FORX_SPOTIFY_SECRET");
                 config.herokuKey = System.getenv("FORX_HEROKU_KEY");
                 config.herokuAppName = System.getenv("FORX_HEROKU_APP_NAME");
+                config.helpMessageId = System.getenv("FORX_HELP_MESSAGE_ID");
+                config.helpChannelId = System.getenv("FORX_HELP_CHANNEL_ID");
 
                 if (System.getenv("FORX_EVENT_NAME") != null) {
                     config.eventName = System.getenv("FORX_EVENT_NAME");

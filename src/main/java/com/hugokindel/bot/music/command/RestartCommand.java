@@ -8,6 +8,7 @@ import net.azzerial.slash.annotations.Slash;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -27,7 +28,7 @@ public class RestartCommand {
         if (MusicBot.get().isInCloud) {
             message.sendAnswerToUser("le serveur va redémarrer, cela pourrais prendre quelques minutes...");
             HashMap<String, String> config = new HashMap<>();
-            config.put("FORX_HEROKU_RESTART", message.isInGuild() ? message.guild.getId() + " " + message.messageChannel.getId() + " " + message.user.getId() : message.user.getId());
+            config.put("FORX_HEROKU_RESTART", message.isInGuild() ? message.guild.getId() + " " + message.messageChannel.getId() + " " + message.user.getId() + " " + Instant.now().toEpochMilli() : message.user.getId() + " " + Instant.now().toEpochMilli());
             MusicBot.get().herokuAPI.updateConfig(MusicBot.get().config.herokuAppName, config);
             MusicBot.get().herokuAPI.restartDynos(MusicBot.get().config.herokuAppName);
         } else {

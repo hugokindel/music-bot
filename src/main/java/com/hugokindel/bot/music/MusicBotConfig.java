@@ -38,4 +38,10 @@ public class MusicBotConfig {
 
     @JsonSerializable(necessary = false)
     public String eventName = "";
+
+    @JsonSerializable(necessary = false)
+    public String helpMessageId = "";
+
+    @JsonSerializable(necessary = false)
+    public String helpChannelId = "";
 }
