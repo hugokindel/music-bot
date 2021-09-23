@@ -134,12 +134,12 @@ public class MusicBot extends BaseProgram {
                             guild.retrieveMemberById(split[0]).queue(member -> {
                                 member.getUser().openPrivateChannel().queue(c -> {
                                     c.sendMessage(
-                                            Discord.mention(split[0] + ", le serveur a redémarré avec succès !")
+                                            Discord.mention(split[0]) + ", le serveur a redémarré avec succès !"
                                     ).queue();
                                 });
                             });
                         } else if (split.length == 3) {
-                            host.client.getGuildById(split[0]).getTextChannelById(split[1]).sendMessage(Discord.mention(split[2] + ", le serveur a redémarré avec succès !")).queue();
+                            host.client.getGuildById(split[0]).getTextChannelById(split[1]).sendMessage(Discord.mention(split[2]) + ", le serveur a redémarré avec succès !").queue();
                         }
 
                         HashMap<String, String> config = new HashMap<>();
