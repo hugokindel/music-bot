@@ -1,16 +1,16 @@
-package com.hugokindel.bot.music.utility;
+package com.hugokindel.bot.common;
 
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.Interaction;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class DiscordMessage {
+public class AnyMessage {
     public Guild guild;
 
     public MessageChannel messageChannel;
@@ -23,13 +23,18 @@ public class DiscordMessage {
 
     public String command;
 
-    private Interaction interaction;
+    public OffsetDateTime timeCreated;
 
-    public DiscordMessage(SlashCommandEvent event) {
+    public Interaction interaction;
+
+    public Message message;
+
+    public AnyMessage(SlashCommandEvent event) {
         guild = event.getGuild();
         messageChannel = event.getMessageChannel();
         user = event.getUser();
         member = event.getMember();
+        timeCreated = event.getTimeCreated();
         interaction = event;
         options = new ArrayList<>();
         for (int i = 0; i < event.getOptions().size(); i++) {
@@ -38,14 +43,16 @@ public class DiscordMessage {
         command = event.getName();
     }
 
-    public DiscordMessage(MessageReceivedEvent event) {
+    public AnyMessage(MessageReceivedEvent event) {
         guild = event.isFromGuild() ? event.getGuild() : null;
         messageChannel = event.getChannel();
         user = event.getAuthor();
         member = event.getMember();
+        timeCreated = event.getMessage().getTimeCreated();
         interaction = null;
         options = new ArrayList<>();
         command = "";
+        message = event.getMessage();
 
         String command = event.getMessage().getContentRaw();
 
@@ -81,11 +88,11 @@ public class DiscordMessage {
     }
 
     public void sendAnswerAskedBy(String message) {
-        sendAnswer(message + "\nDemandé par: " + DiscordUtil.mention(user));
+        sendAnswer(message + "\nDemandé par: " + Discord.mention(user));
     }
 
     public void sendAnswerToUser(String message) {
-        sendAnswer(DiscordUtil.mention(user) + ", " + message);
+        sendAnswer(Discord.mention(user) + ", " + message);
     }
 
     public boolean isInGuild() {

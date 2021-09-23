@@ -10,16 +10,16 @@ import java.util.*;
 public class GuildMusicManager {
     public Guild guild;
 
-    public LinkedList<Integer> availableWorkers;
+    public PriorityQueue<Integer> availableWorkers;
 
     public Map<Long, ChannelMusicManager> channelManagers;
 
     public GuildMusicManager(Guild guild) {
         this.guild = guild;
 
-        availableWorkers = new LinkedList<>();
+        availableWorkers = new PriorityQueue<>(MusicBot.get().workers.size());
         for (int i = 0; i < MusicBot.get().workers.size(); i++) {
-            availableWorkers.add(i);
+            availableWorkers.offer(i);
         }
 
         channelManagers = new HashMap<>();
@@ -43,7 +43,7 @@ public class GuildMusicManager {
         }
 
         if (!availableWorkers.isEmpty()) {
-            int workerId = availableWorkers.removeFirst();
+            int workerId = availableWorkers.poll();
             ChannelMusicManager channelManager = new ChannelMusicManager(channel, workerId, this);
             channelManagers.put(channelId, channelManager);
             return channelManager;
@@ -63,7 +63,7 @@ public class GuildMusicManager {
 
         ChannelMusicManager musicManager = channelManagers.get(channelId);
 
-        availableWorkers.addFirst(musicManager.workerId);
+        availableWorkers.offer(musicManager.workerId);
         musicManager.destroy();
         channelManagers.remove(channelId);
     }

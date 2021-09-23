@@ -1,9 +1,9 @@
 package com.hugokindel.bot.music;
 
+import com.hugokindel.bot.common.Bot;
 import com.hugokindel.bot.music.audio.GuildMusicManager;
 import com.hugokindel.bot.music.audio.PlayerManager;
 import com.hugokindel.bot.music.command.*;
-import com.hugokindel.bot.music.utility.DiscordUtil;
 import com.hugokindel.common.BaseProgram;
 import com.hugokindel.common.cli.option.annotation.Command;
 import com.hugokindel.common.cli.print.In;
@@ -21,7 +21,6 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.VoiceChannel;
-import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.util.*;
@@ -149,6 +148,7 @@ public class MusicBot extends BaseProgram {
                 .addCommand(new InfoCommand())
                 .addCommand(new HelpCommand())
                 .addCommand(new VersionCommand())
+                .addCommand(new PingCommand())
                 .build();
 
         slash.getCommand("play").upsertGuild(config.guildId);
@@ -161,6 +161,7 @@ public class MusicBot extends BaseProgram {
         slash.getCommand("info").upsertGuild(config.guildId);
         slash.getCommand("help").upsertGuild(config.guildId);
         slash.getCommand("version").upsertGuild(config.guildId);
+        slash.getCommand("ping").upsertGuild(config.guildId);
 
         for (int i = 0; i < config.workerTokens.size(); i++) {
             workers.add(new Bot(Bot.Type.Worker, config.workerTokens.get(i), Activity.listening("rien")));
@@ -244,4 +245,30 @@ public class MusicBot extends BaseProgram {
             }
         }
     }
+
+    // Temporary code to send private messages to a few specific persons
+    /*public void eventWelcome() {
+        Guild guild = host.client.getGuildById(config.guildId);
+
+        sendPrivateMessage(guild, "259438342356074496");
+        sendPrivateMessage(guild, "330434030241579019");
+        sendPrivateMessage(guild, "298177718845964288");
+        sendPrivateMessage(guild, "194791160894586880");
+        sendPrivateMessage(guild, "833837029192237126");
+        sendPrivateMessage(guild, "319163214481063938");
+        sendPrivateMessage(guild, "232902914929197063");
+        sendPrivateMessage(guild, "331935539420856320");
+        sendPrivateMessage(guild, "578163510027223050");
+        sendPrivateMessage(guild, "568149216254492672");
+    }
+
+    public void sendPrivateMessage(Guild guild, String id) {
+        guild.retrieveMemberById(id).queue(member -> {
+            member.getUser().openPrivateChannel().queue(c -> {
+                c.sendMessage(
+                        "Hello, World!"
+                ).queue();
+            });
+        });
+    }*/
 }

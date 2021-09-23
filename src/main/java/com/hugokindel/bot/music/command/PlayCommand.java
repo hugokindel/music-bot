@@ -2,8 +2,8 @@ package com.hugokindel.bot.music.command;
 
 import com.hugokindel.bot.music.MusicBot;
 import com.hugokindel.bot.music.audio.ChannelMusicManager;
-import com.hugokindel.bot.music.utility.DiscordMessage;
-import com.hugokindel.bot.music.utility.DiscordUtil;
+import com.hugokindel.bot.common.AnyMessage;
+import com.hugokindel.bot.common.Discord;
 import com.hugokindel.common.utility.StringUtil;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
@@ -16,7 +16,6 @@ import net.azzerial.slash.annotations.OptionType;
 import net.azzerial.slash.annotations.Slash;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
-import net.dv8tion.jda.api.interactions.Interaction;
 
 @Slash.Tag("play")
 @Slash.Command(name = "play", description = "Joue un son.", options = {
@@ -25,13 +24,13 @@ import net.dv8tion.jda.api.interactions.Interaction;
 public class PlayCommand {
     @Slash.Handler()
     public void callback(SlashCommandEvent event) {
-        handlePlay(new DiscordMessage(event));
+        handlePlay(new AnyMessage(event));
     }
 
-    public static void handlePlay(DiscordMessage message) {
-        if (!DiscordUtil.checkInGuild(message) ||
-            !DiscordUtil.checkInVoiceChannel(message) ||
-            !DiscordUtil.checkHasOption(message)) {
+    public static void handlePlay(AnyMessage message) {
+        if (!Discord.checkInGuild(message) ||
+            !Discord.checkInVoiceChannel(message) ||
+            !Discord.checkHasOption(message)) {
             return;
         }
 

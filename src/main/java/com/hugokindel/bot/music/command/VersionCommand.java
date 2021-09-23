@@ -1,10 +1,8 @@
 package com.hugokindel.bot.music.command;
 
 import com.hugokindel.bot.music.MusicBot;
-import com.hugokindel.bot.music.utility.DiscordMessage;
-import com.hugokindel.bot.music.utility.DiscordUtil;
+import com.hugokindel.bot.common.AnyMessage;
 import net.azzerial.slash.annotations.Slash;
-import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 
 
@@ -13,10 +11,10 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 public class VersionCommand {
     @Slash.Handler()
     public void callback(SlashCommandEvent event) {
-        handleVersion(new DiscordMessage(event));
+        handleVersion(new AnyMessage(event));
     }
 
-    public static void handleVersion(DiscordMessage message) {
+    public static void handleVersion(AnyMessage message) {
         message.sendAnswer(getVersion());
     }
 

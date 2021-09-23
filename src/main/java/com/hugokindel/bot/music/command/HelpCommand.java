@@ -1,7 +1,7 @@
 package com.hugokindel.bot.music.command;
 
-import com.hugokindel.bot.music.utility.DiscordMessage;
-import com.hugokindel.bot.music.utility.DiscordUtil;
+import com.hugokindel.bot.common.AnyMessage;
+import com.hugokindel.bot.common.Discord;
 import net.azzerial.slash.annotations.Slash;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 
@@ -11,10 +11,10 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 public class HelpCommand {
     @Slash.Handler()
     public void callback(SlashCommandEvent event) {
-        handleHelp(new DiscordMessage(event));
+        handleHelp(new AnyMessage(event));
     }
 
-    public static void handleHelp(DiscordMessage message) {
+    public static void handleHelp(AnyMessage message) {
         message.sendAnswer(getHelp());
     }
 
@@ -39,13 +39,14 @@ public class HelpCommand {
                 "`/stop`: Quitte le salon vocal et efface la file d'attente.\n" +
                 "`/version`: affiche la version du robot.\n" +
                 "`/info`: Affiche des informations supplémentaires sur le robot.\n" +
+                "`/ping`: Évalue la latence du robot.\n" +
                 "\n" +
                 "Notez que la lecture de son Spotify n'est pas possible car les sons sur Spotify sont soumis à un DRM.\n" +
                 "Ce qui se passe en réalité est la recherche YouTube du son voulu à l'aide des métadonnée récupéré par le lien/la recherche Spotify effectuée.\n" +
                 "\n" +
                 "L'autocomplétion de mes commandes devrait toujours vous être proposé grâce à la fonctionnalité Slash Commands de Discord, si ce n'est pas le cas, pensez bien à utiliser `/help` pour vous rappeler des commandes !\n" +
                 "\nVous pouvez aussi m'envoyer des commandes par message privé, mais l'intérêt est limité." + "\n\n" +
-                "En cas de soucis, contactez " + DiscordUtil.mentionCreator() + ".\n" +
+                "En cas de soucis, contactez " + Discord.mentionCreator() + ".\n" +
                 "Amusez-vous bien !";
     }
 }
