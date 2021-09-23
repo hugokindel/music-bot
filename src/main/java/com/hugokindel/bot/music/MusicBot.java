@@ -1,6 +1,8 @@
 package com.hugokindel.bot.music;
 
+import com.heroku.api.HerokuAPI;
 import com.hugokindel.bot.common.Bot;
+import com.hugokindel.bot.common.Discord;
 import com.hugokindel.bot.music.audio.GuildMusicManager;
 import com.hugokindel.bot.music.audio.PlayerManager;
 import com.hugokindel.bot.music.command.*;
@@ -49,6 +51,8 @@ public class MusicBot extends BaseProgram {
 
     public ClientCredentials spotifyCredentials;
 
+    public HerokuAPI herokuAPI;
+
     public boolean isInCloud;
 
     public void connectToSpotifyApi() {
@@ -61,6 +65,10 @@ public class MusicBot extends BaseProgram {
                 messageCreator("Impossible de se connecter à l'API de Spotify: `" + e.getMessage() + "`");
             }
         }
+    }
+
+    public void connectToHerokuApi() {
+        herokuAPI = new HerokuAPI(config.herokuKey);
     }
 
     public GuildMusicManager getGuildManager(Guild guild) {
@@ -77,7 +85,7 @@ public class MusicBot extends BaseProgram {
 
     @Override
     protected int programMain(String[] args) {
-        if (System.getenv("FORX_HOST_ID") != null) {
+        if (System.getenv("DYNO") != null) {
             isInCloud = true;
         }
 
@@ -116,6 +124,28 @@ public class MusicBot extends BaseProgram {
                     }
 
                     destroy();
+                } else {
+                    if (System.getenv("FORX_HEROKU_RESTART") != null) {
+                        String[] split = System.getenv("FORX_HEROKU_RESTART").split(" ");
+
+                        if (split.length == 1) {
+                            Guild guild = host.client.getGuildById(config.guildId);
+
+                            guild.retrieveMemberById(split[0]).queue(member -> {
+                                member.getUser().openPrivateChannel().queue(c -> {
+                                    c.sendMessage(
+                                            Discord.mention(split[0] + ", le serveur a redémarré avec succès !")
+                                    ).queue();
+                                });
+                            });
+                        } else if (split.length == 3) {
+                            host.client.getGuildById(split[0]).getTextChannelById(split[1]).sendMessage(Discord.mention(split[2] + ", le serveur a redémarré avec succès !")).queue();
+                        }
+
+                        HashMap<String, String> config = new HashMap<>();
+                        config.put("FORX_HEROKU_RESTART", null);
+                        herokuAPI.updateConfig(MusicBot.get().config.herokuAppName, config);
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -128,8 +158,9 @@ public class MusicBot extends BaseProgram {
     private void initialize() {
         spotifyApi = new SpotifyApi.Builder().setClientId(config.spotifyId).setClientSecret(config.spotifySecret).build();
         spotifyCredentialRequest = spotifyApi.clientCredentials().build();
-        connectToSpotifyApi();
 
+        connectToSpotifyApi();
+        connectToHerokuApi();
         playerManager.init();
     }
 
@@ -149,6 +180,7 @@ public class MusicBot extends BaseProgram {
                 .addCommand(new HelpCommand())
                 .addCommand(new VersionCommand())
                 .addCommand(new PingCommand())
+                .addCommand(new RestartCommand())
                 .build();
 
         slash.getCommand("play").upsertGuild(config.guildId);
@@ -162,6 +194,7 @@ public class MusicBot extends BaseProgram {
         slash.getCommand("help").upsertGuild(config.guildId);
         slash.getCommand("version").upsertGuild(config.guildId);
         slash.getCommand("ping").upsertGuild(config.guildId);
+        slash.getCommand("restart").upsertGuild(config.guildId);
 
         for (int i = 0; i < config.workerTokens.size(); i++) {
             workers.add(new Bot(Bot.Type.Worker, config.workerTokens.get(i), Activity.listening("rien")));
@@ -200,26 +233,50 @@ public class MusicBot extends BaseProgram {
 
     private void loadConfig() {
         if (isInCloud) {
-            config = new MusicBotConfig();
-            config.hostId = System.getenv("FORX_HOST_ID");
-            config.hostToken = System.getenv("FORX_HOST_TOKEN");
-            config.workerIds = Arrays.asList(System.getenv("FORX_WORKER_IDS").split(" "));
-            config.workerTokens = Arrays.asList(System.getenv("FORX_WORKER_TOKENS").split(" "));
-            config.guildId = System.getenv("FORX_GUILD_ID");
-            config.creatorId = System.getenv("FORX_CREATOR_ID");
-            config.spotifyId = System.getenv("FORX_SPOTIFY_ID");
-            config.spotifySecret = System.getenv("FORX_SPOTIFY_SECRET");
-            config.eventName = System.getenv("FORX_EVENT_NAME");
-            isConfigured = true;
+            if (checkEnvVar("FORX_HOST_ID") && checkEnvVar("FORX_HOST_TOKEN") &&
+                checkEnvVar("FORX_WORKER_IDS") && checkEnvVar("FORX_WORKER_TOKENS") &&
+                checkEnvVar("FORX_GUILD_ID") && checkEnvVar("FORX_CREATOR_ID") &&
+                checkEnvVar("FORX_SPOTIFY_ID") && checkEnvVar("FORX_SPOTIFY_SECRET") &&
+                checkEnvVar("FORX_HEROKU_KEY") && checkEnvVar("FORX_HEROKU_APP_NAME")) {
+                config = new MusicBotConfig();
+                config.hostId = System.getenv("FORX_HOST_ID");
+                config.hostToken = System.getenv("FORX_HOST_TOKEN");
+                config.workerIds = Arrays.asList(System.getenv("FORX_WORKER_IDS").split(" "));
+                config.workerTokens = Arrays.asList(System.getenv("FORX_WORKER_TOKENS").split(" "));
+                config.guildId = System.getenv("FORX_GUILD_ID");
+                config.creatorId = System.getenv("FORX_CREATOR_ID");
+                config.spotifyId = System.getenv("FORX_SPOTIFY_ID");
+                config.spotifySecret = System.getenv("FORX_SPOTIFY_SECRET");
+                config.herokuKey = System.getenv("FORX_HEROKU_KEY");
+                config.herokuAppName = System.getenv("FORX_HEROKU_APP_NAME");
+
+                if (System.getenv("FORX_EVENT_NAME") != null) {
+                    config.eventName = System.getenv("FORX_EVENT_NAME");
+                } else {
+                    config.eventName = "";
+                }
+
+                isConfigured = true;
+            }
         } else if (Resources.getConfig().global.isEmpty()) {
             config = new MusicBotConfig();
         } else {
             config = Json.deserialize(Resources.getConfig().global, MusicBotConfig.class);
             if (!config.hostId.isEmpty() && !config.hostToken.isEmpty() && !config.workerIds.isEmpty() &&
-                !config.workerTokens.isEmpty() && !config.guildId.isEmpty() && !config.creatorId.isEmpty()) {
+                !config.workerTokens.isEmpty() && !config.guildId.isEmpty() && !config.creatorId.isEmpty() &&
+                !config.spotifyId.isEmpty() && !config.spotifySecret.isEmpty() && !config.herokuKey.isEmpty() && !config.herokuAppName.isEmpty()) {
                 isConfigured = true;
             }
         }
+    }
+
+    public boolean checkEnvVar(String name) {
+        if (System.getenv(name) == null) {
+            Out.println("Environment variable `" + name + "` missing to run correctly!");
+            return false;
+        }
+
+        return true;
     }
 
     private void saveConfig() {

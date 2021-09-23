@@ -41,6 +41,9 @@ public class HelpCommand {
                 "`/info`: Affiche des informations supplémentaires sur le robot.\n" +
                 "`/ping`: Évalue la latence du robot.\n" +
                 "\n" +
+                "Certaines commandes ne sont disponibles qu'aux administrateurs du serveur:\n" +
+                "`/restart`: Redémarre le serveur.\n" +
+                "\n" +
                 "Notez que la lecture de son Spotify n'est pas possible car les sons sur Spotify sont soumis à un DRM.\n" +
                 "Ce qui se passe en réalité est la recherche YouTube du son voulu à l'aide des métadonnée récupéré par le lien/la recherche Spotify effectuée.\n" +
                 "\n" +

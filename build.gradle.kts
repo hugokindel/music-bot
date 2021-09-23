@@ -39,6 +39,9 @@ dependencies {
     implementation("com.github.jagrosh:JLyrics:-SNAPSHOT")
     implementation("org.slf4j:slf4j-api:1.7.32")
     implementation("org.slf4j:slf4j-nop:1.7.32")
+    implementation("com.heroku.api:heroku-api:0.45")
+    implementation("com.heroku.api:heroku-json-jackson:0.45")
+    implementation("com.heroku.api:heroku-http-apache:0.45")
 
     // JUnit libraries.
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jUnitVersion")

@@ -2,9 +2,12 @@ package com.hugokindel.bot.common;
 
 import com.hugokindel.bot.music.MusicBot;
 import com.hugokindel.bot.music.audio.ChannelMusicManager;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.VoiceChannel;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Discord {
     public static String mention(Member member) {
@@ -77,6 +80,31 @@ public class Discord {
     public static boolean checkSongPaused(AnyMessage message, ChannelMusicManager channelManager) {
         if (!channelManager.trackScheduler.player.isPaused()) {
             message.sendAnswerToUser("un son doit être en pause pour appeler cette commande !");
+            return false;
+        }
+
+        return true;
+    }
+
+    public static boolean checkIsAdmin(AnyMessage message) {
+        AtomicBoolean canRunCommand = new AtomicBoolean(false);
+
+        if (message.user.getId().equals(MusicBot.get().config.creatorId)) {
+            canRunCommand.set(true);
+        } else {
+            try {
+                MusicBot.get().host.client.getGuildById(MusicBot.get().config.guildId).retrieveMemberById(message.user.getId()).queue(member -> {
+                    if (member.isOwner() || member.hasPermission(Permission.ADMINISTRATOR)) {
+                        canRunCommand.set(true);
+                    }
+                });
+            } catch (Exception ignored) {
+
+            }
+        }
+
+        if (!canRunCommand.get()) {
+            message.sendAnswerToUser("tu n'a pas les permissions pour appeler cette commande !");
             return false;
         }
 

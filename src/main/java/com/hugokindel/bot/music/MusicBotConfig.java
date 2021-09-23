@@ -31,5 +31,11 @@ public class MusicBotConfig {
     public String spotifySecret = "";
 
     @JsonSerializable(necessary = false)
+    public String herokuKey = "";
+
+    @JsonSerializable(necessary = false)
+    public String herokuAppName = "";
+
+    @JsonSerializable(necessary = false)
     public String eventName = "";
 }
