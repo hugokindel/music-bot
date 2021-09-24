@@ -78,6 +78,8 @@ public class Bot extends ListenerAdapter {
                     PingCommand.handlePing(message);
                 } else if (message.command.equals("restart")) {
                     RestartCommand.handleRestart(message);
+                } else if (message.command.equals("shutdown")) {
+                    ShutdownCommand.handleShutdown(message);
                 } else {
                     UnknownCommand.handleUnknown(message);
                 }

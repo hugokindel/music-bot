@@ -25,13 +25,22 @@ import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
 
+import java.awt.*;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.time.Instant;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Command(name = "bot", version = "0.1.0", description = "A bot for music streaming.")
 public class MusicBot extends BaseProgram {
+    public static final Color COLOR_PINK = new Color(255, 0, 255);
+
+    public static final Color COLOR_GREEN = new Color(0, 255, 0);
+
     public static final String VERSION = "0.1.0";
 
     public static final String WANGA_ID = "578163510027223050";
@@ -57,6 +66,10 @@ public class MusicBot extends BaseProgram {
     public HerokuAPI herokuAPI;
 
     public boolean isInCloud;
+
+    public AtomicBoolean shouldShutdown = new AtomicBoolean(false);
+
+    public Random random = new java.util.Random();
 
     public void connectToSpotifyApi() {
         if (spotifyCredentials == null || spotifyCredentials.getExpiresIn() <= 0) {
@@ -122,27 +135,45 @@ public class MusicBot extends BaseProgram {
 
                     if (channel != null) {
                         if (!config.helpMessageId.isEmpty()) {
-                            channel.editMessageById(config.helpMessageId, HelpCommand.getHelp()).queue(null, new ErrorHandler()
-                                    .ignore(ErrorResponse.INVALID_AUTHOR_EDIT)
-                                    .ignore(ErrorResponse.MISSING_ACCESS)
-                                    .ignore(ErrorResponse.UNKNOWN_CHANNEL)
-                                    .handle(ErrorResponse.UNKNOWN_MESSAGE, (e) -> {
-                                        channel.sendMessage(HelpCommand.getHelp()).queue();
-                                    }));
+                            channel.retrieveMessageById(config.helpMessageId).flatMap(v -> v.editMessageEmbeds(HelpCommand.getHelp()))
+                                    .queue(null, new ErrorHandler()
+                                            .ignore(ErrorResponse.INVALID_AUTHOR_EDIT)
+                                            .ignore(ErrorResponse.MISSING_ACCESS)
+                                            .ignore(ErrorResponse.UNKNOWN_CHANNEL)
+                                            .handle(ErrorResponse.UNKNOWN_MESSAGE, (e) -> {
+                                                channel.sendMessageEmbeds(HelpCommand.getHelp()).queue();
+                                            }));
                         } else {
-                            channel.sendMessage(HelpCommand.getHelp()).queue();
+                            Out.println("No known help message, creating a new one.");
+                            channel.sendMessageEmbeds(HelpCommand.getHelp()).queue();
                         }
                     }
                 }
 
                 if (!isInCloud) {
-                    while (true) {
-                        String command = In.nextString(/*"Enter a command (e.g: help): "*/"");
+                    Thread thread = new Thread(new CliInteractionRunnable());
+                    thread.setName("CliThread");
+                    thread.start();
 
-                        if (command.equals("exit")) {
-                            break;
+                    while (!shouldShutdown.get()) {
+                        try {
+                            Thread.sleep(10);
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
                     }
+
+                    Out.println("Shutting down...");
+
+                    try {
+                        if (thread.isAlive()) {
+                            thread.join(100);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    Out.println("CLI thread destroyed.");
 
                     destroy();
                 } else {
@@ -214,6 +245,7 @@ public class MusicBot extends BaseProgram {
                 .addCommand(new VersionCommand())
                 .addCommand(new PingCommand())
                 .addCommand(new RestartCommand())
+                .addCommand(new ShutdownCommand())
                 .build();
 
         slash.getCommand("play").upsertGuild(config.guildId);
@@ -228,6 +260,7 @@ public class MusicBot extends BaseProgram {
         slash.getCommand("version").upsertGuild(config.guildId);
         slash.getCommand("ping").upsertGuild(config.guildId);
         slash.getCommand("restart").upsertGuild(config.guildId);
+        slash.getCommand("shutdown").upsertGuild(config.guildId);
 
         for (int i = 0; i < config.workerTokens.size(); i++) {
             workers.add(new Bot(Bot.Type.Worker, config.workerTokens.get(i), Activity.listening("rien")));
@@ -238,13 +271,9 @@ public class MusicBot extends BaseProgram {
         if (config.eventName.equals("welcome")) {
             eventWelcome();
         }
-
-        if (!isInCloud) {
-            Out.println("You can now enter commands.");
-        }
     }
 
-    private void destroy() throws InterruptedException {
+    public void destroy() {
         saveConfig();
 
         host.client.getPresence().setStatus(OnlineStatus.OFFLINE);
@@ -322,9 +351,13 @@ public class MusicBot extends BaseProgram {
         return (MusicBot)BaseProgram.get();
     }
 
+    public Guild getGuild() {
+        return host.client.getGuildById(config.guildId);
+    }
+
     public void eventWelcome() {
         TextChannel channel = host.client.getTextChannelsByName("infos", false).get(0);
-        channel.sendMessage(HelpCommand.getHelp()).queue();
+        channel.sendMessageEmbeds(HelpCommand.getHelp()).queue();
 
         Guild guild = host.client.getGuildById(config.guildId);
         assert guild != null;
@@ -332,9 +365,45 @@ public class MusicBot extends BaseProgram {
         TextChannel textChannel = guild.getTextChannelsByName("music", false).get(0);
         for (VoiceChannel voiceChannel : voiceChannels) {
             if (!voiceChannel.getName().equals("AFK")) {
-                PlayCommand.play(guild, voiceChannel, textChannel, "https://forx-bot.s3.eu-west-3.amazonaws.com/events/welcome-1.mp3");
-                PlayCommand.play(guild, voiceChannel, textChannel, "https://forx-bot.s3.eu-west-3.amazonaws.com/events/welcome-2.mp3");
+                //PlayCommand.play(guild, voiceChannel, textChannel, "https://forx-bot.s3.eu-west-3.amazonaws.com/events/welcome-1.mp3");
+                //PlayCommand.play(guild, voiceChannel, textChannel, "https://forx-bot.s3.eu-west-3.amazonaws.com/events/welcome-2.mp3");
             }
+        }
+    }
+
+    protected static class CliInteractionRunnable implements Runnable {
+        @Override
+        public void run() {
+            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+            String input;
+
+            Out.println("You can now enter commands.");
+
+            try {
+                do {
+                    while (!br.ready() && !MusicBot.get().shouldShutdown.get()) {
+                        Thread.sleep(10);
+                    }
+
+                    if (MusicBot.get().shouldShutdown.get()) {
+                        break;
+                    }
+
+                    input = br.readLine();
+
+                    if (input.equals("shutdown") ||  input.equals("exit") || input.equals("quit")) {
+                        break;
+                    }
+                } while (true);
+
+                br.close();
+            } catch (Exception e) {
+                if (!e.getMessage().toLowerCase().contains("broken pipe")) {
+                    e.printStackTrace();
+                }
+            }
+
+            MusicBot.get().shouldShutdown.set(true);
         }
     }
 

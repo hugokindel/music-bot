@@ -2,8 +2,10 @@ package com.hugokindel.bot.common;
 
 import com.hugokindel.bot.music.MusicBot;
 import com.hugokindel.bot.music.audio.ChannelMusicManager;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 
@@ -103,5 +105,30 @@ public class Discord {
 
         message.sendAnswerToUser("tu n'a pas les permissions pour appeler cette commande !");
         return false;
+    }
+
+    public static boolean checkIsOwner(AnyMessage message) {
+        if (message.user.getId().equals(MusicBot.get().config.creatorId)) {
+            return true;
+        }
+
+        message.sendAnswerToUser("tu n'a pas les permissions pour appeler cette commande !");
+        return false;
+    }
+
+    public static MessageEmbed createEmbed(String title, String message) {
+        EmbedBuilder eb = new EmbedBuilder();
+
+        eb.setTitle(title);
+        eb.setDescription(message);
+        eb.setFooter("- FORX-BOT par Forx");
+
+        if (MusicBot.get().random.nextInt(2) == 0) {
+            eb.setColor(MusicBot.COLOR_PINK);
+        } else {
+            eb.setColor(MusicBot.COLOR_GREEN);
+        }
+
+        return eb.build();
     }
 }
