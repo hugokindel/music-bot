@@ -129,12 +129,14 @@ public class PlayCommand {
         doSearch(channelManager, search, message, isUrl);
     }
 
+    public static void play(Guild guild, VoiceChannel voiceChannel, String query) {
+        doSearch(MusicBot.get().getGuildManager(guild).getChannelManager(voiceChannel), query, null, true);
+    }
+
     public static void doSearch(ChannelMusicManager channelManager, String query, AnyMessage message, boolean isUrl) {
         MusicBot.get().playerManager.loadItemOrdered(channelManager, query, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
-                Out.println("Track loaded");
-
                 if (!channelManager.trackScheduler.playing) {
                     if (message != null) {
                         message.appendToMessageAskedByUser("Début de la lecture de `" + track.getInfo().title + "`.");

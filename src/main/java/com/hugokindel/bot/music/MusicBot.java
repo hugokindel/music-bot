@@ -356,8 +356,8 @@ public class MusicBot extends BaseProgram {
     }
 
     public void eventWelcome() {
-        TextChannel channel = host.client.getTextChannelsByName("infos", false).get(0);
-        channel.sendMessageEmbeds(HelpCommand.getHelp()).queue();
+        //TextChannel channel = host.client.getTextChannelsByName("infos", false).get(0);
+        //channel.sendMessageEmbeds(HelpCommand.getHelp()).queue();
 
         Guild guild = host.client.getGuildById(config.guildId);
         assert guild != null;
@@ -367,6 +367,8 @@ public class MusicBot extends BaseProgram {
             if (!voiceChannel.getName().equals("AFK")) {
                 //PlayCommand.play(guild, voiceChannel, textChannel, "https://forx-bot.s3.eu-west-3.amazonaws.com/events/welcome-1.mp3");
                 //PlayCommand.play(guild, voiceChannel, textChannel, "https://forx-bot.s3.eu-west-3.amazonaws.com/events/welcome-2.mp3");
+                PlayCommand.play(guild, voiceChannel, "https://forx-bot.s3.eu-west-3.amazonaws.com/events/welcome-1.mp3");
+                PlayCommand.play(guild, voiceChannel, "https://forx-bot.s3.eu-west-3.amazonaws.com/events/welcome-2.mp3");
             }
         }
     }
