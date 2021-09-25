@@ -1,6 +1,7 @@
 package com.hugokindel.bot.music.command;
 
 import com.hugokindel.bot.common.AnyMessage;
+import com.hugokindel.bot.common.CommandMessage;
 import com.hugokindel.bot.common.Discord;
 import com.hugokindel.bot.music.MusicBot;
 import net.azzerial.slash.annotations.Slash;
@@ -11,16 +12,26 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 public class ShutdownCommand {
     @Slash.Handler()
     public void callback(SlashCommandEvent event) {
-        handle(new AnyMessage(event));
+        handle(new CommandMessage(event, getTitle()));
     }
 
-    public static void handle(AnyMessage message) {
+    public static void handle(CommandMessage message) {
         if (!Discord.checkIsOwner(message)) {
             return;
         }
 
-        message.sendAnswerToUser("le serveur va s'éteindre.");
+        message.sendEmbed("Le serveur va s'éteindre.");
+
+        try {
+            Thread.sleep(300);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         MusicBot.get().shouldShutdown.set(true);
+    }
+
+    public static String getTitle() {
+        return "Fermeture";
     }
 }

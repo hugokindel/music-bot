@@ -17,7 +17,9 @@ public class PingCommand {
     }
 
     public static void handle(CommandMessage message) {
-        message.sendEmbed(String.format("Le ping du serveur distant est de %d ms", message.timeCreated.until(message.answerTimeCreated, ChronoUnit.MILLIS)));
+        message.sendEmbed(String.format(
+                "Le ping du serveur distant est de %dms.", message.timeCreated.until(message.answerTimeCreated, ChronoUnit.MILLIS)
+        ));
     }
 
     public static String getTitle() {

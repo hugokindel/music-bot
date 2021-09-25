@@ -56,7 +56,7 @@ public class MusicBot extends BaseProgram {
 
     public static final Color COLOR_GREEN = new Color(0, 255, 0);
 
-    public static final String VERSION = "0.1.0";
+    public static final String VERSION = "alpha 5";
 
     public static final String WANGA_ID = "578163510027223050";
 

@@ -1,8 +1,10 @@
 // TODO: Spotify artist (best songs)
 // TODO: Spotify podcasts
+// TODO: Stop search during playlist if bot has been disconnceted
 
 package com.hugokindel.bot.music.command;
 
+import com.hugokindel.bot.common.CommandMessage;
 import com.hugokindel.bot.music.MusicBot;
 import com.hugokindel.bot.music.audio.ChannelMusicManager;
 import com.hugokindel.bot.common.AnyMessage;
@@ -26,30 +28,20 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 public class PlayCommand {
     @Slash.Handler()
     public void callback(SlashCommandEvent event) {
-        handle(new AnyMessage(event));
+        handle(new CommandMessage(event, getTitle()));
     }
 
-    public static void handle(AnyMessage message) {
+    public static void handle(CommandMessage message) {
         if (!Discord.checkInGuild(message) ||
             !Discord.checkInVoiceChannel(message) ||
             !Discord.checkHasOption(message)) {
             return;
         }
 
-        message.sendAnswer("Traitement de la commande...");
-
-        while (message.answerId == null) {
-            try {
-                Thread.sleep(10);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
         ChannelMusicManager channelManager = MusicBot.get().getGuildManager(message.guild).getChannelManager(message.member.getVoiceState().getChannel());
         channelManager.messageChannel = message.messageChannel;
 
-        String search = message.getOptionsAsOne();
+        String search = message.getOptionsAsString();
 
         while (search.charAt(0) == ' ') {
             search = search.substring(1);
@@ -113,7 +105,7 @@ public class PlayCommand {
                     if (tracks.getItems().length > 0) {
                         search = "ytsearch: " + tracks.getItems()[0].getArtists()[0].getName() + " " + tracks.getItems()[0].getName();
                     } else {
-                        message.sendAnswer("Impossible de trouver le son voulu !");
+                        message.sendErrorEmbed("Impossible de trouver le son voulu !");
                         return;
                     }
                 } catch (Exception e) {
@@ -131,17 +123,23 @@ public class PlayCommand {
         doSearch(MusicBot.get().getGuildManager(guild).getChannelManager(voiceChannel), query, null, true);
     }
 
-    public static void doSearch(ChannelMusicManager channelManager, String query, AnyMessage message, boolean isUrl) {
+    public static void doSearch(ChannelMusicManager channelManager, String query, CommandMessage message, boolean isUrl) {
         MusicBot.get().playerManager.loadItemOrdered(channelManager, query, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
                 if (!channelManager.trackScheduler.playing) {
                     if (message != null) {
-                        message.appendToMessageAskedByUser("Début de la lecture de `" + track.getInfo().title + "`.");
+                        message.appendAndSendEmbed(String.format(
+                                "Début de la lecture de `%s`.",
+                                track.getInfo().title
+                        ));
                     }
                 } else {
                     if (message != null) {
-                        message.appendToMessageAskedByUser("Ajout à la file d'attente de `" + track.getInfo().title + "`.");
+                        message.appendAndSendEmbed(String.format(
+                                "Ajout à la file d'attente de `%s`.",
+                                track.getInfo().title
+                        ));
                     }
                 }
 
@@ -164,19 +162,17 @@ public class PlayCommand {
 
                     if (!channelManager.trackScheduler.playing) {
                         if (message != null) {
-                            if (message.answerId != null) {
-                                message.appendToMessageAskedByUser("Début de la lecture de `" + track.getInfo().title + "`.");
-                            } else {
-                                message.editAnswerAskedByUser("Début de la lecture de `" + track.getInfo().title + "`.");
-                            }
+                            message.appendAndSendEmbed(String.format(
+                                    "Début de la lecture de `%s`.",
+                                    track.getInfo().title
+                            ));
                         }
                     } else {
                         if (message != null) {
-                            if (message.answerId != null) {
-                                message.appendToMessageAskedByUser("Ajout à la file d'attente de `" + track.getInfo().title + "`.");
-                            } else {
-                                message.editAnswerAskedByUser("Ajout à la file d'attente de `" + track.getInfo().title + "`.");
-                            }
+                            message.appendAndSendEmbed(String.format(
+                                    "Ajout à la file d'attente de `%s`.",
+                                    track.getInfo().title
+                            ));
                         }
                     }
 
@@ -191,11 +187,8 @@ public class PlayCommand {
             @Override
             public void noMatches() {
                 if (message != null) {
-                    if (message.answerId != null) {
-                        message.appendToMessageAskedByUser("Impossible de trouver le son voulu !");
-                    } else {
-                        message.sendAnswer("Impossible de trouver le son voulu !");
-                    }
+                    // TODO: Add sound name
+                    message.appendAndSendEmbed("Impossible de trouver le son voulu !");
                 }
             }
 
@@ -204,13 +197,14 @@ public class PlayCommand {
                 exception.printStackTrace();
 
                 if (message != null) {
-                    if (message.answerId != null) {
-                        message.appendToMessageAskedByUser("Impossible de jouer le son voulu !");
-                    } else {
-                        message.sendAnswer("Impossible de jouer le son voulu !");
-                    }
+                    // TODO: Add sound name
+                    message.appendAndSendEmbed("Impossible de jouer le son voulu !");
                 }
             }
         });
+    }
+
+    public static String getTitle() {
+        return "Jouer";
     }
 }

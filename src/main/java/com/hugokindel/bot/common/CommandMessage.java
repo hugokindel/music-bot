@@ -1,5 +1,6 @@
 package com.hugokindel.bot.common;
 
+import com.hugokindel.bot.music.MusicBot;
 import com.hugokindel.common.cli.print.Out;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
@@ -133,11 +134,15 @@ public class CommandMessage {
         handleEmbed(Discord.createEmbed(answerTitle, answerMessage));
     }
 
+    public void sendErrorEmbed(String text) {
+        handleEmbed(Discord.createEmbed(text, null, MusicBot.COLOR_RED));
+    }
+
     private void handlingCommand() {
         MessageEmbed embed = Discord.createTitleOnly("Traitement de la commande...");
 
         if (interaction != null) {
-            interaction.deferReply().addEmbeds(embed).map(v -> v.retrieveOriginal().map(w -> {
+            interaction.deferReply().addEmbeds(embed).flatMap(v -> v.retrieveOriginal().map(w -> {
                 answerId = w.getId();
                 answerTimeCreated = w.getTimeCreated();
                 return this;

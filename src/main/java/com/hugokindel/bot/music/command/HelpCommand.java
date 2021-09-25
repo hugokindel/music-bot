@@ -1,6 +1,7 @@
 package com.hugokindel.bot.music.command;
 
 import com.hugokindel.bot.common.AnyMessage;
+import com.hugokindel.bot.common.CommandMessage;
 import com.hugokindel.bot.common.Discord;
 import net.azzerial.slash.annotations.Slash;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -12,10 +13,10 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 public class HelpCommand {
     @Slash.Handler()
     public void callback(SlashCommandEvent event) {
-        handle(new AnyMessage(event));
+        handle(new CommandMessage(event, getTitle()));
     }
 
-    public static void handle(AnyMessage message) {
+    public static void handle(CommandMessage message) {
         message.sendEmbed(getHelp());
     }
 
@@ -33,11 +34,11 @@ public class HelpCommand {
                         "Mais vous pouvez spécifier sur quel site faire une recherche à l'aide des préfix correspondant !\n" +
                         "Il existe: `ytsearch:`, `scsearch:` et `spsearch:`\n" +
                         "Example: `/play scsearch: Lil Nas X` (recherche Lil Nas X sur SoundCloud)\n" +
-                        "`/pause`: Met la musique en cour en pause.\n" +
-                        "`/resume`: Reprends la musique en cour..\n" +
+                        "`/pause`: Met la musique en cours en pause.\n" +
+                        "`/resume`: Reprends la musique en cours..\n" +
                         "`/nowplaying`: Affiche des informations sur le son en cours.\n" +
-                        "`/skip`: Passe le son en cour.\n" +
-                        "`/loop`: Active/désactive la boucle du son en cour.\n" +
+                        "`/skip`: Passe le son en cours.\n" +
+                        "`/loop`: Active/désactive la boucle du son en cours.\n" +
                         "`/stop`: Quitte le salon vocal et efface la file d'attente.\n" +
                         "`/version`: Affiche la version du robot.\n" +
                         "`/info`: Affiche des informations supplémentaires sur le robot.\n" +
@@ -56,5 +57,9 @@ public class HelpCommand {
                         "\nVous pouvez aussi m'envoyer des commandes par message privé, mais l'intérêt est limité." + "\n\n" +
                         "En cas de soucis, contactez " + Discord.mentionCreator() + ".\n\n" +
                         "Amusez-vous bien !");
+    }
+
+    public static String getTitle() {
+        return "Aide";
     }
 }

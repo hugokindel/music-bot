@@ -83,37 +83,42 @@ public class Bot extends ListenerAdapter {
             }
 
             if (command.startsWith("/")) {
-                CommandMessage message = new CommandMessage(event);
                 boolean found = false;
 
-                if (message.isCommand()) {
-                    for (Class<?> c : MusicBot.get().commandClasses) {
-                        if (c.isAnnotationPresent(Slash.Tag.class)) {
-                            Slash.Tag tag = c.getAnnotation(Slash.Tag.class);
+                command = command.substring(1).split(" ")[0];
 
-                            if (message.command.equals(tag.value())) {
-                                found = true;
+                for (Class<?> c : MusicBot.get().commandClasses) {
+                    if (c.isAnnotationPresent(Slash.Tag.class)) {
+                        Slash.Tag tag = c.getAnnotation(Slash.Tag.class);
 
-                                try {
-                                    message.answerTitle = (String)c.getMethod("getTitle").invoke(null);
-                                    c.getMethod("handle", CommandMessage.class).invoke(null, message);
-                                    break;
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
+                        if (command.equals(tag.value())) {
+                            found = true;
+
+                            try {
+                                CommandMessage message = new CommandMessage(event);
+                                message.answerTitle = (String)c.getMethod("getTitle").invoke(null);
+                                c.getMethod("handle", CommandMessage.class).invoke(null, message);
+                                break;
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
                         }
                     }
+                }
 
-                    if (!found) {
-                        message.answerTitle = "Commande inconnue !";
-                        message.sendEmbed(null, MusicBot.COLOR_RED);
-                    }
+                if (!found) {
+                    EmbedBuilder embedBuilder = new EmbedBuilder();
+                    embedBuilder.setTitle("Commande inconnue !");
+                    embedBuilder.setFooter("FORX-BOT par Forx.");
+                    embedBuilder.setColor(MusicBot.COLOR_RED);
+                    event.getMessage().replyEmbeds(embedBuilder.build()).queue();
                 }
             } else if (isPrivate) {
-                CommandMessage message = new CommandMessage(event);
-                message.answerTitle = "Si tu essaie d'envoyer une commande, utilise le préfix `/` !";
-                message.sendEmbed(null, MusicBot.COLOR_RED);
+                EmbedBuilder embedBuilder = new EmbedBuilder();
+                embedBuilder.setTitle("Si tu essaie d'envoyer une commande, utilise le préfix `/` !");
+                embedBuilder.setFooter("FORX-BOT par Forx.");
+                embedBuilder.setColor(MusicBot.COLOR_RED);
+                event.getMessage().replyEmbeds(embedBuilder.build()).queue();
             }
         }
     }
@@ -126,13 +131,11 @@ public class Bot extends ListenerAdapter {
             }
 
             EmbedBuilder embedBuilder = new EmbedBuilder();
-
             embedBuilder.setTitle("Je ne comprends pas !");
             embedBuilder.setDescription("Si tu cherche à envoyer une commande, tu dois contacter " + Discord.mention(MusicBot.get().host.client.getSelfUser().getId()) + " ou l'écrire directement dans le serveur en question à l'aide des *Slash Commands* de Discord !");
             embedBuilder.setFooter("FORX-BOT par Forx.");
             embedBuilder.setColor(MusicBot.COLOR_RED);
-
-            event.getChannel().sendMessageEmbeds(embedBuilder.build()).queue();
+            event.getMessage().replyEmbeds(embedBuilder.build()).queue();
         }
     }
 
