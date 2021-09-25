@@ -1,5 +1,6 @@
 package com.hugokindel.bot.music.command;
 
+import com.hugokindel.bot.common.CommandMessage;
 import com.hugokindel.bot.music.MusicBot;
 import com.hugokindel.bot.music.audio.ChannelMusicManager;
 import com.hugokindel.bot.common.AnyMessage;
@@ -8,14 +9,14 @@ import net.azzerial.slash.annotations.Slash;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 
 @Slash.Tag("loop")
-@Slash.Command(name = "loop", description = "Active la boucle du son en cour.")
+@Slash.Command(name = "loop", description = "Active/désactive la boucle du son en cour.")
 public class LoopCommand {
     @Slash.Handler()
     public void callback(SlashCommandEvent event) {
-        handleLoop(new AnyMessage(event));
+        handle(new CommandMessage(event, getTitle()));
     }
 
-    public static void handleLoop(AnyMessage message) {
+    public static void handle(CommandMessage message) {
         if (!Discord.checkInGuild(message) ||
             !Discord.checkInVoiceChannel(message)) {
             return;
@@ -29,11 +30,18 @@ public class LoopCommand {
         }
 
         if (!channelManager.trackScheduler.looping) {
-            message.sendAnswerAskedBy("Lecture en boucle de `" + channelManager.trackScheduler.player.getPlayingTrack().getInfo().title + "`.");
+            message.sendEmbed(String.format(
+                    "Lecture en boucle de `%s`.",
+                    channelManager.trackScheduler.player.getPlayingTrack().getInfo().title
+            ));
         } else {
-            message.sendAnswerAskedBy("Désactivation de la lecture en boucle.");
+            message.sendErrorEmbed("Désactivation de la lecture en boucle.");
         }
 
         channelManager.trackScheduler.looping = !channelManager.trackScheduler.looping;
+    }
+
+    public static String getTitle() {
+        return "Boucle";
     }
 }

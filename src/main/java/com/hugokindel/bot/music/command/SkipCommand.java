@@ -1,5 +1,6 @@
 package com.hugokindel.bot.music.command;
 
+import com.hugokindel.bot.common.CommandMessage;
 import com.hugokindel.bot.music.MusicBot;
 import com.hugokindel.bot.music.audio.ChannelMusicManager;
 import com.hugokindel.bot.common.AnyMessage;
@@ -8,14 +9,14 @@ import net.azzerial.slash.annotations.Slash;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 
 @Slash.Tag("skip")
-@Slash.Command(name = "skip", description = "Passe le son en cour.")
+@Slash.Command(name = "skip", description = "Passe le son en cours.")
 public class SkipCommand {
     @Slash.Handler()
     public void callback(SlashCommandEvent event) {
-        handleSkip(new AnyMessage(event));
+        handle(new CommandMessage(event, getTitle()));
     }
 
-    public static void handleSkip(AnyMessage message) {
+    public static void handle(CommandMessage message) {
         if (!Discord.checkInGuild(message) ||
             !Discord.checkInVoiceChannel(message)) {
             return;
@@ -30,6 +31,10 @@ public class SkipCommand {
 
         channelManager.trackScheduler.skipTrack();
 
-        message.sendAnswerAskedBy("Le son actuel va être passé.");
+        message.sendEmbed("Le son actuel va être passé.");
+    }
+
+    public static String getTitle() {
+        return "Passer";
     }
 }

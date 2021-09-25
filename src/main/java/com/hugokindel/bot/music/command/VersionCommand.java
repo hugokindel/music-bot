@@ -1,5 +1,6 @@
 package com.hugokindel.bot.music.command;
 
+import com.hugokindel.bot.common.CommandMessage;
 import com.hugokindel.bot.music.MusicBot;
 import com.hugokindel.bot.common.AnyMessage;
 import net.azzerial.slash.annotations.Slash;
@@ -11,14 +12,18 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 public class VersionCommand {
     @Slash.Handler()
     public void callback(SlashCommandEvent event) {
-        handleVersion(new AnyMessage(event));
+        handle(new CommandMessage(event, getTitle()));
     }
 
-    public static void handleVersion(AnyMessage message) {
-        message.sendAnswer(getVersion());
+    public static void handle(CommandMessage message) {
+        message.sendEmbed(getVersion());
     }
 
     public static String getVersion() {
-        return "Version: " + MusicBot.VERSION;
+        return "Nous sommes actuellement en " + MusicBot.VERSION + ".";
+    }
+
+    public static String getTitle() {
+        return "Version";
     }
 }

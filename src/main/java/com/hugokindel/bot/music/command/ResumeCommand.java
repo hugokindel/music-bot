@@ -1,5 +1,6 @@
 package com.hugokindel.bot.music.command;
 
+import com.hugokindel.bot.common.CommandMessage;
 import com.hugokindel.bot.music.MusicBot;
 import com.hugokindel.bot.music.audio.ChannelMusicManager;
 import com.hugokindel.bot.common.AnyMessage;
@@ -12,10 +13,10 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 public class ResumeCommand {
     @Slash.Handler()
     public void callback(SlashCommandEvent event) {
-        handleResume(new AnyMessage(event));
+        handle(new CommandMessage(event, getTitle()));
     }
 
-    public static void handleResume(AnyMessage message) {
+    public static void handle(CommandMessage message) {
         if (!Discord.checkInGuild(message) ||
             !Discord.checkInVoiceChannel(message)) {
             return;
@@ -31,6 +32,10 @@ public class ResumeCommand {
 
         channelManager.trackScheduler.player.setPaused(false);
 
-        message.sendAnswerAskedBy("La lecture du son en cour va reprendre.");
+        message.sendEmbed("La lecture du son en cours va reprendre.");
+    }
+
+    public static String getTitle() {
+        return "Reprise";
     }
 }

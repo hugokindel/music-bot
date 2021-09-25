@@ -1,8 +1,13 @@
+// TODO: REFLECTION FOR COMMANDS
+// TODO: FINISH EMBED
+// TODO: AUTOMATIZE HELP ?
+
 package com.hugokindel.bot.music;
 
 import com.heroku.api.HerokuAPI;
 import com.hugokindel.bot.common.Bot;
 import com.hugokindel.bot.common.Discord;
+import com.hugokindel.bot.music.audio.ChannelMusicManager;
 import com.hugokindel.bot.music.audio.GuildMusicManager;
 import com.hugokindel.bot.music.audio.PlayerManager;
 import com.hugokindel.bot.music.command.*;
@@ -24,6 +29,12 @@ import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
+import org.reflections8.Reflections;
+import org.reflections8.scanners.ResourcesScanner;
+import org.reflections8.scanners.SubTypesScanner;
+import org.reflections8.util.ClasspathHelper;
+import org.reflections8.util.ConfigurationBuilder;
+import org.reflections8.util.FilterBuilder;
 
 import java.awt.*;
 import java.io.BufferedReader;
@@ -32,16 +43,20 @@ import java.io.InputStreamReader;
 import java.time.Instant;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Command(name = "bot", version = "0.1.0", description = "A bot for music streaming.")
 public class MusicBot extends BaseProgram {
+    public static final Color COLOR_RED = new Color(255, 0, 0);
+
     public static final Color COLOR_PINK = new Color(255, 0, 255);
 
     public static final Color COLOR_GREEN = new Color(0, 255, 0);
 
-    public static final String VERSION = "0.1.0";
+    public static final String VERSION = "alpha 5";
 
     public static final String WANGA_ID = "578163510027223050";
 
@@ -69,7 +84,13 @@ public class MusicBot extends BaseProgram {
 
     public AtomicBoolean shouldShutdown = new AtomicBoolean(false);
 
-    public Random random = new java.util.Random();
+    public Random random = new java.util.Random(System.currentTimeMillis());
+
+    public ScheduledExecutorService threadpool;
+
+    public Map<Integer, Long> unusedWorkers = new HashMap<>();
+
+    public Set<Class<?>> commandClasses;
 
     public void connectToSpotifyApi() {
         if (spotifyCredentials == null || spotifyCredentials.getExpiresIn() <= 0) {
@@ -205,10 +226,6 @@ public class MusicBot extends BaseProgram {
                                 host.client.getGuildById(split[0]).getTextChannelById(split[1]).sendMessage(Discord.mention(split[2]) + ", le serveur a redémarré avec succès !").queue();
                             }
                         }
-
-                        /*HashMap<String, String> config = new HashMap<>();
-                        config.put("FORX_HEROKU_RESTART", null);
-                        herokuAPI.updateConfig(MusicBot.get().config.herokuAppName, config);*/
                     }
                 }
             } catch (Exception e) {
@@ -226,6 +243,54 @@ public class MusicBot extends BaseProgram {
         connectToSpotifyApi();
         connectToHerokuApi();
         playerManager.init();
+
+        List<ClassLoader> classLoadersList = new LinkedList<ClassLoader>();
+        classLoadersList.add(ClasspathHelper.contextClassLoader());
+        classLoadersList.add(ClasspathHelper.staticClassLoader());
+        Reflections reflections = new Reflections(new ConfigurationBuilder()
+                .setScanners(new SubTypesScanner(false), new ResourcesScanner())
+                .setUrls(ClasspathHelper.forClassLoader(classLoadersList.toArray(new ClassLoader[0])))
+                .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix("com.hugokindel.bot.music.command"))));
+        commandClasses = reflections.getSubTypesOf(Object.class);
+
+        threadpool = Executors.newSingleThreadScheduledExecutor();
+        threadpool.scheduleWithFixedDelay(() -> {
+            try {
+                for (int i =  0; i < workers.size(); i++) {
+                    Bot worker = workers.get(i);
+
+                    Guild guild = worker.client.getGuildById(config.guildId);
+                    GuildVoiceState voiceState = worker.client.getGuildById(config.guildId).getSelfMember().getVoiceState();
+
+                    if (!unusedWorkers.containsKey(i) && voiceState.inVoiceChannel()) {
+                        VoiceChannel voiceChannel = voiceState.getChannel();
+
+                        if (voiceChannel.getMembers().size() == 1 || !MusicBot.get().getGuildManager(guild).getChannelManager(voiceChannel).trackScheduler.playing) {
+                            unusedWorkers.put(i, TimeUnit.MILLISECONDS.toSeconds(Instant.now().toEpochMilli()));
+                        }
+                    } else if (unusedWorkers.containsKey(i)) {
+                        if (voiceState.inVoiceChannel()) {
+                            VoiceChannel voiceChannel = voiceState.getChannel();
+
+                            if (voiceChannel.getMembers().size() > 1 && MusicBot.get().getGuildManager(guild).getChannelManager(voiceChannel).trackScheduler.playing) {
+                                unusedWorkers.remove(i);
+                            } else {
+                                long curSec = TimeUnit.MILLISECONDS.toSeconds(Instant.now().toEpochMilli());
+
+                                if (curSec - unusedWorkers.get(i) > 300) {
+                                    MusicBot.get().getGuildManager(guild).freeChannelManager(voiceChannel);
+                                    unusedWorkers.remove(i);
+                                }
+                            }
+                        } else {
+                            unusedWorkers.remove(i);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }, 30, 5, TimeUnit.SECONDS);
     }
 
     private void mainLogic() throws Exception {
@@ -275,6 +340,8 @@ public class MusicBot extends BaseProgram {
 
     public void destroy() {
         saveConfig();
+
+        threadpool.shutdownNow();
 
         host.client.getPresence().setStatus(OnlineStatus.OFFLINE);
         host.client.shutdownNow();

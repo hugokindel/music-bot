@@ -9,6 +9,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 
+import java.awt.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Discord {
@@ -28,67 +29,67 @@ public class Discord {
         return mention(MusicBot.get().config.creatorId);
     }
 
-    public static boolean checkInGuild(AnyMessage message) {
+    public static boolean checkInGuild(CommandMessage message) {
         if (message.guild == null) {
-            message.sendAnswerToUser("tu dois être dans un serveur pour appeler cette commande !");
+            message.sendErrorEmbed("Tu dois être dans un serveur pour utiliser cette commande !");
             return false;
         }
 
         return true;
     }
 
-    public static boolean checkInVoiceChannel(AnyMessage message) {
+    public static boolean checkInVoiceChannel(CommandMessage message) {
         VoiceChannel channel = message.member.getVoiceState().getChannel();
 
         if (channel == null) {
-            message.sendAnswerToUser("tu dois être dans un salon audio pour appeler cette commande !");
+            message.sendErrorEmbed("Tu dois être dans un salon audio pour utiliser cette commande !");
             return false;
         }
 
         return true;
     }
 
-    public static boolean checkHasOptions(AnyMessage message, int n) {
+    public static boolean checkHasOptions(CommandMessage message, int n) {
         if (message.options.size() < n) {
-            message.sendAnswerToUser("au moins une option est manquante pour pouvoir appeler cette commande !");
+            message.sendErrorEmbed("Au moins une option est manquante pour pouvoir utiliser cette commande !");
             return false;
         }
 
         return true;
     }
 
-    public static boolean checkHasOption(AnyMessage message) {
+    public static boolean checkHasOption(CommandMessage message) {
         return checkHasOptions(message, 1);
     }
 
-    public static boolean checkSongPlaying(AnyMessage message, ChannelMusicManager channelManager) {
+    public static boolean checkSongPlaying(CommandMessage message, ChannelMusicManager channelManager) {
         if (!channelManager.trackScheduler.playing) {
-            message.sendAnswerToUser("un son doit être en train de jouer pour appeler cette commande !");
+            message.sendErrorEmbed("Un son doit être en train de jouer pour utiliser cette commande !");
             return false;
         }
 
         return true;
     }
 
-    public static boolean checkSongNotPaused(AnyMessage message, ChannelMusicManager channelManager) {
+    public static boolean checkSongNotPaused(CommandMessage message, ChannelMusicManager channelManager) {
         if (channelManager.trackScheduler.player.isPaused()) {
-            message.sendAnswerToUser("un son doit être en train de jouer pour appeler cette commande !");
+            message.sendErrorEmbed("Un son doit être en train de jouer pour utiliser cette commande !");
             return false;
         }
 
         return true;
     }
 
-    public static boolean checkSongPaused(AnyMessage message, ChannelMusicManager channelManager) {
+    public static boolean checkSongPaused(CommandMessage message, ChannelMusicManager channelManager) {
         if (!channelManager.trackScheduler.player.isPaused()) {
-            message.sendAnswerToUser("un son doit être en pause pour appeler cette commande !");
+            message.sendErrorEmbed("Un son doit être en pause pour utiliser cette commande !");
             return false;
         }
 
         return true;
     }
 
-    public static boolean checkIsAdmin(AnyMessage message) {
+    public static boolean checkIsAdmin(CommandMessage message) {
         if (message.user.getId().equals(MusicBot.get().config.creatorId)) {
             return true;
         } else {
@@ -103,16 +104,16 @@ public class Discord {
             }
         }
 
-        message.sendAnswerToUser("tu n'a pas les permissions pour appeler cette commande !");
+        message.sendErrorEmbed("Tu n'as pas les permissions pour utiliser cette commande !");
         return false;
     }
 
-    public static boolean checkIsOwner(AnyMessage message) {
+    public static boolean checkIsOwner(CommandMessage message) {
         if (message.user.getId().equals(MusicBot.get().config.creatorId)) {
             return true;
         }
 
-        message.sendAnswerToUser("tu n'a pas les permissions pour appeler cette commande !");
+        message.sendErrorEmbed("Tu n'as pas les permissions pour utiliser cette commande !");
         return false;
     }
 
@@ -121,13 +122,48 @@ public class Discord {
 
         eb.setTitle(title);
         eb.setDescription(message);
-        eb.setFooter("- FORX-BOT par Forx");
+        eb.setFooter("FORX-BOT par Forx.");
 
         if (MusicBot.get().random.nextInt(2) == 0) {
             eb.setColor(MusicBot.COLOR_PINK);
         } else {
             eb.setColor(MusicBot.COLOR_GREEN);
         }
+
+        return eb.build();
+    }
+
+    public static MessageEmbed createEmbed(String title, String message, Color color) {
+        EmbedBuilder eb = new EmbedBuilder();
+
+        if (title != null && !title.isEmpty()) {
+            eb.setTitle(title);
+        }
+
+        if (message != null && !message.isEmpty()) {
+            eb.setDescription(message);
+        }
+
+        eb.setFooter("FORX-BOT par Forx.");
+
+        if (color != null) {
+            eb.setColor(color);
+        } else {
+            if (MusicBot.get().random.nextInt(2) == 0) {
+                eb.setColor(MusicBot.COLOR_PINK);
+            } else {
+                eb.setColor(MusicBot.COLOR_GREEN);
+            }
+        }
+
+        return eb.build();
+    }
+
+    public static MessageEmbed createTitleOnly(String title) {
+        EmbedBuilder eb = new EmbedBuilder();
+
+        eb.setTitle(title);
+        eb.setFooter("FORX-BOT par Forx.");
 
         return eb.build();
     }

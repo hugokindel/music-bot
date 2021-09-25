@@ -42,6 +42,7 @@ dependencies {
     implementation("com.heroku.api:heroku-api:0.45")
     implementation("com.heroku.api:heroku-json-jackson:0.45")
     implementation("com.heroku.api:heroku-http-apache:0.45")
+    implementation("net.oneandone.reflections8:reflections8:0.11.5")
 
     // JUnit libraries.
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jUnitVersion")

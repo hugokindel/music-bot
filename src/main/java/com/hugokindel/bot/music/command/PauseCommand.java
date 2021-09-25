@@ -1,5 +1,6 @@
 package com.hugokindel.bot.music.command;
 
+import com.hugokindel.bot.common.CommandMessage;
 import com.hugokindel.bot.music.MusicBot;
 import com.hugokindel.bot.music.audio.ChannelMusicManager;
 import com.hugokindel.bot.common.AnyMessage;
@@ -12,10 +13,10 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 public class PauseCommand {
     @Slash.Handler()
     public void callback(SlashCommandEvent event) {
-        handlePause(new AnyMessage(event));
+        handle(new CommandMessage(event, getTitle()));
     }
 
-    public static void handlePause(AnyMessage message) {
+    public static void handle(CommandMessage message) {
         if (!Discord.checkInGuild(message) ||
             !Discord.checkInVoiceChannel(message)) {
             return;
@@ -31,6 +32,10 @@ public class PauseCommand {
 
         channelManager.trackScheduler.player.setPaused(true);
 
-        message.sendAnswerAskedBy("Le son actuel va être mis en pause.");
+        message.sendEmbed("Le son actuel va être mis en pause.");
+    }
+
+    public static String getTitle() {
+        return "Pause";
     }
 }
