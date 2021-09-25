@@ -13,10 +13,10 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 public class StopCommand {
     @Slash.Handler()
     public void callback(SlashCommandEvent event) {
-        handleStop(new AnyMessage(event));
+        handle(new AnyMessage(event));
     }
 
-    public static void handleStop(AnyMessage message) {
+    public static void handle(AnyMessage message) {
         if (!Discord.checkInGuild(message) ||
                 !Discord.checkInVoiceChannel(message)) {
             return;

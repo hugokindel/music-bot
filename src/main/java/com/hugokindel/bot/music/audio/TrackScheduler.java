@@ -54,7 +54,6 @@ public class TrackScheduler extends AudioEventAdapter {
         if (queue.isEmpty() && !looping) {
             playing = false;
             MusicBot.get().workers.get(channelManager.workerId).client.getPresence().setActivity(Activity.listening("rien"));
-            channelManager.guildManager.freeChannelManager(channelManager.channel);
         } else if (endReason.mayStartNext || isSkipping) {
             if (looping) {
                 player.startTrack(lastTrack.makeClone(), false);

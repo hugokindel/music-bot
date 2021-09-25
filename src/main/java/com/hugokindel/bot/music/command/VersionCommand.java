@@ -11,10 +11,10 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 public class VersionCommand {
     @Slash.Handler()
     public void callback(SlashCommandEvent event) {
-        handleVersion(new AnyMessage(event));
+        handle(new AnyMessage(event));
     }
 
-    public static void handleVersion(AnyMessage message) {
+    public static void handle(AnyMessage message) {
         message.sendAnswer(getVersion());
     }
 

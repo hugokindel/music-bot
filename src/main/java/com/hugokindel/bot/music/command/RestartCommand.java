@@ -3,24 +3,21 @@ package com.hugokindel.bot.music.command;
 import com.hugokindel.bot.common.AnyMessage;
 import com.hugokindel.bot.common.Discord;
 import com.hugokindel.bot.music.MusicBot;
-import com.hugokindel.common.cli.print.Out;
 import net.azzerial.slash.annotations.Slash;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 
 import java.time.Instant;
 import java.util.HashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slash.Tag("restart")
 @Slash.Command(name = "restart", description = "Redémarre le robot.")
 public class RestartCommand {
     @Slash.Handler()
     public void callback(SlashCommandEvent event) {
-        handleRestart(new AnyMessage(event));
+        handle(new AnyMessage(event));
     }
 
-    public static void handleRestart(AnyMessage message) {
+    public static void handle(AnyMessage message) {
         if (!Discord.checkIsAdmin(message)) {
             return;
         }

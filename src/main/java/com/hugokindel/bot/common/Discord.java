@@ -9,6 +9,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 
+import java.awt.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Discord {
@@ -121,13 +122,48 @@ public class Discord {
 
         eb.setTitle(title);
         eb.setDescription(message);
-        eb.setFooter("- FORX-BOT par Forx");
+        eb.setFooter("FORX-BOT par Forx.");
 
         if (MusicBot.get().random.nextInt(2) == 0) {
             eb.setColor(MusicBot.COLOR_PINK);
         } else {
             eb.setColor(MusicBot.COLOR_GREEN);
         }
+
+        return eb.build();
+    }
+
+    public static MessageEmbed createEmbed(String title, String message, Color color) {
+        EmbedBuilder eb = new EmbedBuilder();
+
+        if (title != null && !title.isEmpty()) {
+            eb.setTitle(title);
+        }
+
+        if (message != null && !message.isEmpty()) {
+            eb.setDescription(message);
+        }
+
+        eb.setFooter("FORX-BOT par Forx.");
+
+        if (color != null) {
+            eb.setColor(color);
+        } else {
+            if (MusicBot.get().random.nextInt(2) == 0) {
+                eb.setColor(MusicBot.COLOR_PINK);
+            } else {
+                eb.setColor(MusicBot.COLOR_GREEN);
+            }
+        }
+
+        return eb.build();
+    }
+
+    public static MessageEmbed createTitleOnly(String title) {
+        EmbedBuilder eb = new EmbedBuilder();
+
+        eb.setTitle(title);
+        eb.setFooter("FORX-BOT par Forx.");
 
         return eb.build();
     }

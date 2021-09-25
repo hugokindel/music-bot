@@ -12,10 +12,10 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 public class PauseCommand {
     @Slash.Handler()
     public void callback(SlashCommandEvent event) {
-        handlePause(new AnyMessage(event));
+        handle(new AnyMessage(event));
     }
 
-    public static void handlePause(AnyMessage message) {
+    public static void handle(AnyMessage message) {
         if (!Discord.checkInGuild(message) ||
             !Discord.checkInVoiceChannel(message)) {
             return;

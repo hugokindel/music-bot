@@ -12,10 +12,10 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 public class SkipCommand {
     @Slash.Handler()
     public void callback(SlashCommandEvent event) {
-        handleSkip(new AnyMessage(event));
+        handle(new AnyMessage(event));
     }
 
-    public static void handleSkip(AnyMessage message) {
+    public static void handle(AnyMessage message) {
         if (!Discord.checkInGuild(message) ||
             !Discord.checkInVoiceChannel(message)) {
             return;

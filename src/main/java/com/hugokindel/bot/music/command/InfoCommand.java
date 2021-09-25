@@ -11,10 +11,10 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 public class InfoCommand {
     @Slash.Handler()
     public void callback(SlashCommandEvent event) {
-        handleInfo(new AnyMessage(event));
+        handle(new AnyMessage(event));
     }
 
-    public static void handleInfo(AnyMessage message) {
+    public static void handle(AnyMessage message) {
         message.sendAnswer(getInfo());
     }
 

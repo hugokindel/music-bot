@@ -1,10 +1,18 @@
+// TODO: BUG COULDNT SEND EMBD
+
 package com.hugokindel.bot.common;
 
 import com.hugokindel.bot.music.MusicBot;
 import com.hugokindel.bot.music.command.*;
+import com.hugokindel.common.cli.option.annotation.Command;
+import com.hugokindel.common.cli.print.Out;
+import net.azzerial.slash.annotations.Slash;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
@@ -12,11 +20,21 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.jetbrains.annotations.NotNull;
+import org.reflections8.Reflections;
+import org.reflections8.scanners.ResourcesScanner;
+import org.reflections8.scanners.SubTypesScanner;
+import org.reflections8.util.ClasspathHelper;
+import org.reflections8.util.ConfigurationBuilder;
+import org.reflections8.util.FilterBuilder;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.security.auth.login.LoginException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 public class Bot extends ListenerAdapter {
     public enum Type {
@@ -51,38 +69,51 @@ public class Bot extends ListenerAdapter {
                 return;
             }
 
-            AnyMessage message = new AnyMessage(event);
+            boolean isPrivate = true;
 
-            if (message.isCommand()) {
-                if (message.command.equals("help")) {
-                    HelpCommand.handleHelp(message);
-                } else if (message.command.equals("info")) {
-                    InfoCommand.handleInfo(message);
-                } else if (message.command.equals("loop")) {
-                    LoopCommand.handleLoop(message);
-                } else if (message.command.equals("nowplaying")) {
-                    NowPlayingCommand.handleNowPlaying(message);
-                } else if (message.command.equals("pause")) {
-                    PauseCommand.handlePause(message);
-                } else if (message.command.equals("play")) {
-                    PlayCommand.handlePlay(message);
-                } else if (message.command.equals("resume")) {
-                    ResumeCommand.handleResume(message);
-                } else if (message.command.equals("skip")) {
-                    SkipCommand.handleSkip(message);
-                } else if (message.command.equals("stop")) {
-                    StopCommand.handleStop(message);
-                } else if (message.command.equals("version")) {
-                    VersionCommand.handleVersion(message);
-                } else if (message.command.equals("ping")) {
-                    PingCommand.handlePing(message);
-                } else if (message.command.equals("restart")) {
-                    RestartCommand.handleRestart(message);
-                } else if (message.command.equals("shutdown")) {
-                    ShutdownCommand.handleShutdown(message);
-                } else {
-                    UnknownCommand.handleUnknown(message);
+            try {
+                event.getPrivateChannel();
+            } catch (Exception e) {
+                isPrivate = false;
+            }
+
+            String command = event.getMessage().getContentRaw();
+            while (command.charAt(0) == ' ') {
+                command = command.substring(1);
+            }
+
+            if (command.startsWith("/")) {
+                CommandMessage message = new CommandMessage(event);
+                boolean found = false;
+
+                if (message.isCommand()) {
+                    for (Class<?> c : MusicBot.get().commandClasses) {
+                        if (c.isAnnotationPresent(Slash.Tag.class)) {
+                            Slash.Tag tag = c.getAnnotation(Slash.Tag.class);
+
+                            if (message.command.equals(tag.value())) {
+                                found = true;
+
+                                try {
+                                    message.answerTitle = (String)c.getMethod("getTitle").invoke(null);
+                                    c.getMethod("handle", CommandMessage.class).invoke(null, message);
+                                    break;
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    }
+
+                    if (!found) {
+                        message.answerTitle = "Commande inconnue !";
+                        message.sendEmbed(null, MusicBot.COLOR_RED);
+                    }
                 }
+            } else if (isPrivate) {
+                CommandMessage message = new CommandMessage(event);
+                message.answerTitle = "Si tu essaie d'envoyer une commande, utilise le préfix `/` !";
+                message.sendEmbed(null, MusicBot.COLOR_RED);
             }
         }
     }
@@ -94,11 +125,14 @@ public class Bot extends ListenerAdapter {
                 return;
             }
 
-            event.getChannel().sendMessage(Discord.mention(event.getAuthor()) + ", je ne sais pas comment te répondre !" +
-                    "\n\n" +
-                    "Pour appeler une commande, tu dois contacter " + Discord.mention(MusicBot.get().host.client.getSelfUser().getId()) + " ou le faire directement sur le serveur à l'aide des Slash Commands !" +
-                    "\n\n" +
-                    "En cas de soucis, contactez " + Discord.mentionCreator() + ".").queue();
+            EmbedBuilder embedBuilder = new EmbedBuilder();
+
+            embedBuilder.setTitle("Je ne comprends pas !");
+            embedBuilder.setDescription("Si tu cherche à envoyer une commande, tu dois contacter " + Discord.mention(MusicBot.get().host.client.getSelfUser().getId()) + " ou l'écrire directement dans le serveur en question à l'aide des *Slash Commands* de Discord !");
+            embedBuilder.setFooter("FORX-BOT par Forx.");
+            embedBuilder.setColor(MusicBot.COLOR_RED);
+
+            event.getChannel().sendMessageEmbeds(embedBuilder.build()).queue();
         }
     }
 
