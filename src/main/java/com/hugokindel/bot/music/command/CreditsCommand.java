@@ -34,7 +34,7 @@ public class CreditsCommand {
         eb.addField(new MessageEmbed.Field(
                 "Remerciements à",
                 "- " + Discord.mention(MusicBot.KAASTIEL_ID) + "\n" +
-                "- Tous les du serveur des **PRO PLAYERS** !",
+                "- Tous les membres du serveur des **PRO PLAYERS** !",
                 false
         ));
 

@@ -25,9 +25,9 @@ public class HelpCommand {
         eb.setDescription(
                 "Salut, je m'appelle __**FORX-BOT**__ !\n" +
                 "\n" +
-                "Je suis un robot de musique développé pour le serveur des **PRO PLAYERS** et suis capable de jouer de la musique dans tous vos salon vocaux simultanément.\n" +
+                "Je suis un robot de musique développé spécifiquement pour le serveur des **PRO PLAYERS** et suis capable de jouer de la musique dans tous vos salon vocaux simultanément.\n" +
                 "\n" +
-                "En cas de soucis ou de recommandations, veuillez contactez " + Discord.mentionCreator() + ".\n" +
+                "En cas de soucis ou d'idées, veuillez contactez " + Discord.mentionCreator() + ".\n" +
                 "\n" +
                 "Voici les commandes que vous pouvez effectuer:"
         );
@@ -162,6 +162,7 @@ public class HelpCommand {
         eb.setTitle(getTitle());
         eb.setFooter("FORX-BOT par Forx.");
         eb.setColor(Discord.getRandomColor());
+        eb.setThumbnail("https://forx-bot.s3.eu-west-3.amazonaws.com/images/FORX-BOT-MASTER.png");
 
         return eb.build();
     }

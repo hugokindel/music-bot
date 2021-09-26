@@ -1,4 +1,6 @@
-// TODO: Spotify artist (best songs)
+// TODO: Twitch thumbnail
+// TODO: SoundCloud thumbnail
+// TODO: Cut messages when too long (play/now playing)
 
 package com.hugokindel.bot.music.command;
 
@@ -40,14 +42,14 @@ public class PlayCommand {
         public MessageEmbed build(ChannelMusicManager channelManager, CommandMessage message) {
             EmbedBuilder eb = new EmbedBuilder();
             if (message.thumbnailUrl != null && !message.thumbnailUrl.isEmpty()) {
-                eb.setThumbnail(channelManager.trackScheduler.currentThumbnail);
+                eb.setThumbnail(message.thumbnailUrl);
             }
             eb.setTitle(getTitle());
             eb.setFooter("FORX-BOT par Forx.");
             eb.setColor(Discord.getRandomColor());
             if (!start.isEmpty()) {
                 eb.addField(new MessageEmbed.Field(
-                        "Début de la piste audio",
+                        "Lecture de la piste audio",
                         start,
                         false
                 ));
@@ -179,29 +181,27 @@ public class PlayCommand {
                     e.printStackTrace();
                 }
             }
-        } else {
-            if (search.startsWith("spsearch:")) {
-                MusicBot.get().connectToSpotifyApi();
+        } else if (search.startsWith("spsearch:")) {
+            MusicBot.get().connectToSpotifyApi();
 
-                try {
-                    Paging<Track> tracks = MusicBot.get().spotifyApi.searchTracks(search.substring(9)).build().execute();
+            try {
+                Paging<Track> tracks = MusicBot.get().spotifyApi.searchTracks(search.substring(9)).build().execute();
 
-                    if (tracks.getItems().length > 0) {
-                        if (tracks.getItems()[0].getAlbum().getImages().length > 0) {
-                            thumbnailUrl = tracks.getItems()[0].getAlbum().getImages()[0].getUrl();
-                            message.thumbnailUrl = thumbnailUrl;
-                        }
-                        search = "ytsearch: " + tracks.getItems()[0].getArtists()[0].getName() + " " + tracks.getItems()[0].getName();
-                    } else {
-                        message.sendErrorEmbed("Impossible de trouver la piste voulu !");
-                        return;
+                if (tracks.getItems().length > 0) {
+                    if (tracks.getItems()[0].getAlbum().getImages().length > 0) {
+                        thumbnailUrl = tracks.getItems()[0].getAlbum().getImages()[0].getUrl();
+                        message.thumbnailUrl = thumbnailUrl;
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    search = "ytsearch: " + tracks.getItems()[0].getArtists()[0].getName() + " " + tracks.getItems()[0].getName();
+                } else {
+                    message.sendErrorEmbed("Impossible de trouver la piste voulu !");
+                    return;
                 }
-            } else if (!search.startsWith("ytsearch:") && !search.startsWith("scsearch:")) {
-                search = "ytsearch:" + search;
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+        } else if (!search.startsWith("ytsearch:") && !search.startsWith("scsearch:")) {
+            search = "ytsearch:" + search;
         }
 
         doSearch(channelManager, search, message, isUrl, playingMessage);
@@ -215,6 +215,12 @@ public class PlayCommand {
         MusicBot.get().playerManager.loadItemOrdered(channelManager, query, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
+                if (message.thumbnailUrl == null) {
+                    if (track.getSourceManager().getSourceName().toLowerCase().contains("youtube")) {
+                        message.thumbnailUrl = String.format("https://img.youtube.com/vi/%s/mqdefault.jpg", track.getIdentifier());
+                    }
+                }
+
                 if (!channelManager.trackScheduler.playing) {
                     if (message != null && playingMessage != null) {
                         playingMessage.start = track.getInfo().title;
@@ -236,6 +242,12 @@ public class PlayCommand {
 
             @Override
             public void playlistLoaded(AudioPlaylist playlist) {
+                if (message.thumbnailUrl == null) {
+                    if (playlist.getTracks().get(0).getSourceManager().getSourceName().toLowerCase().contains("youtube")) {
+                        message.thumbnailUrl = String.format("https://img.youtube.com/vi/%s/mqdefault.jpg", playlist.getTracks().get(0).getIdentifier());
+                    }
+                }
+
                 if (!isUrl) {
                     trackLoaded(playlist.getTracks().get(0));
                     return;
