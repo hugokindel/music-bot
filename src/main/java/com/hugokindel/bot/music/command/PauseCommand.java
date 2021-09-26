@@ -8,7 +8,7 @@ import net.azzerial.slash.annotations.Slash;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 
 @Slash.Tag("pause")
-@Slash.Command(name = "pause", description = "Met le son actuel en pause.")
+@Slash.Command(name = "pause", description = "Met le son en cours en pause s'il est en lecture, sinon le reprends.")
 public class PauseCommand {
     @Slash.Handler()
     public void callback(SlashCommandEvent event) {
@@ -24,17 +24,20 @@ public class PauseCommand {
         ChannelMusicManager channelManager = MusicBot.get().getGuildManager(message.guild).getChannelManager(message.member.getVoiceState().getChannel());
         channelManager.messageChannel = message.messageChannel;
 
-        if (!Discord.checkSongPlaying(message, channelManager) ||
-            !Discord.checkSongNotPaused(message, channelManager)) {
+        if (!Discord.checkSongPlaying(message, channelManager)) {
             return;
         }
 
-        channelManager.trackScheduler.player.setPaused(true);
-
-        message.sendEmbed("Le son actuel va être mis en pause.");
+        if (channelManager.trackScheduler.player.isPaused()) {
+            channelManager.trackScheduler.player.setPaused(false);
+            message.sendEmbed("La lecture du son en cours va reprendre.");
+        } else {
+            channelManager.trackScheduler.player.setPaused(true);
+            message.sendEmbed("La lecture du son en cours va être mis en pause.");
+        }
     }
 
     public static String getTitle() {
-        return "Pause";
+        return "Pause/reprise de lecture";
     }
 }
