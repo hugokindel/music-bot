@@ -7,7 +7,7 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 
 
 @Slash.Tag("version")
-@Slash.Command(name = "version", description = "Affiche la version du robot.")
+@Slash.Command(name = "version", description = "Affiche le numéro de version.")
 public class VersionCommand {
     @Slash.Handler()
     public void callback(SlashCommandEvent event) {

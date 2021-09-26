@@ -7,10 +7,11 @@ package com.hugokindel.bot.music;
 import com.heroku.api.HerokuAPI;
 import com.hugokindel.bot.common.Bot;
 import com.hugokindel.bot.common.Discord;
-import com.hugokindel.bot.music.audio.ChannelMusicManager;
 import com.hugokindel.bot.music.audio.GuildMusicManager;
 import com.hugokindel.bot.music.audio.PlayerManager;
 import com.hugokindel.bot.music.command.*;
+import com.hugokindel.bot.music.command.empty.InfoCommand;
+import com.hugokindel.bot.music.command.empty.ResumeCommand;
 import com.hugokindel.common.BaseProgram;
 import com.hugokindel.common.cli.option.annotation.Command;
 import com.hugokindel.common.cli.print.In;
@@ -27,8 +28,6 @@ import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.requests.ErrorResponse;
-import net.dv8tion.jda.api.requests.RestAction;
-import net.dv8tion.jda.api.requests.restaction.MessageAction;
 import org.reflections8.Reflections;
 import org.reflections8.scanners.ResourcesScanner;
 import org.reflections8.scanners.SubTypesScanner;
@@ -56,9 +55,11 @@ public class MusicBot extends BaseProgram {
 
     public static final Color COLOR_GREEN = new Color(0, 255, 0);
 
-    public static final String VERSION = "alpha 5";
+    public static final String VERSION = "alpha 6";
 
     public static final String WANGA_ID = "578163510027223050";
+
+    public static final String KAASTIEL_ID = "330434030241579019";
 
     public boolean isConfigured;
 
@@ -302,15 +303,16 @@ public class MusicBot extends BaseProgram {
                 .addCommand(new SkipCommand())
                 .addCommand(new StopCommand())
                 .addCommand(new PauseCommand())
-                .addCommand(new ResumeCommand())
                 .addCommand(new NowPlayingCommand())
                 .addCommand(new LoopCommand())
-                .addCommand(new InfoCommand())
+                .addCommand(new CreditsCommand())
                 .addCommand(new HelpCommand())
                 .addCommand(new VersionCommand())
                 .addCommand(new PingCommand())
                 .addCommand(new RestartCommand())
                 .addCommand(new ShutdownCommand())
+                .addCommand(new InfoCommand())
+                .addCommand(new ResumeCommand())
                 .build();
 
         slash.getCommand("play").upsertGuild(config.guildId);
@@ -320,12 +322,15 @@ public class MusicBot extends BaseProgram {
         slash.getCommand("resume").upsertGuild(config.guildId);
         slash.getCommand("nowplaying").upsertGuild(config.guildId);
         slash.getCommand("loop").upsertGuild(config.guildId);
-        slash.getCommand("info").upsertGuild(config.guildId);
+        slash.getCommand("credits").upsertGuild(config.guildId);
         slash.getCommand("help").upsertGuild(config.guildId);
         slash.getCommand("version").upsertGuild(config.guildId);
         slash.getCommand("ping").upsertGuild(config.guildId);
         slash.getCommand("restart").upsertGuild(config.guildId);
         slash.getCommand("shutdown").upsertGuild(config.guildId);
+
+        slash.getCommand("info").deleteGuild(config.guildId);
+        slash.getCommand("resume").deleteGuild(config.guildId);
 
         for (int i = 0; i < config.workerTokens.size(); i++) {
             workers.add(new Bot(Bot.Type.Worker, config.workerTokens.get(i), Activity.listening("rien")));

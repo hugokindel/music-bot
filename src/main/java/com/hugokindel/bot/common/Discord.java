@@ -163,4 +163,12 @@ public class Discord {
 
         return eb.build();
     }
+
+    public static Color getRandomColor() {
+        if (MusicBot.get().random.nextInt(2) == 0) {
+            return MusicBot.COLOR_PINK;
+        } else {
+            return MusicBot.COLOR_GREEN;
+        }
+    }
 }

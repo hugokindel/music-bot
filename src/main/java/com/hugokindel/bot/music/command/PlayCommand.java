@@ -19,8 +19,8 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 
 @Slash.Tag("play")
-@Slash.Command(name = "play", description = "Joue un son.", options = {
-        @Option(name = "requête", description = "URL/nom du son.", type = OptionType.STRING, required = true)
+@Slash.Command(name = "play", description = "Si aucun son n'est en cours joue le son ou la playlist demandé sinon le rajoute à la file d'attente.", options = {
+        @Option(name = "requête", description = "URL ou recherche.", type = OptionType.STRING, required = true)
 })
 public class PlayCommand {
     @Slash.Handler()
@@ -177,7 +177,7 @@ public class PlayCommand {
                     channelManager.connect();
                 }
 
-                channelManager.trackScheduler.queue(track);
+                channelManager.trackScheduler.queue(track, message.thumbnailUrl);
             }
 
             @Override
@@ -218,7 +218,7 @@ public class PlayCommand {
                         channelManager.connect();
                     }
 
-                    channelManager.trackScheduler.queue(playlist.getTracks().get(i));
+                    channelManager.trackScheduler.queue(playlist.getTracks().get(i), message.thumbnailUrl);
                 }
             }
 

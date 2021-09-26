@@ -9,7 +9,7 @@ import net.azzerial.slash.annotations.Slash;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 
 @Slash.Tag("stop")
-@Slash.Command(name = "stop", description = "Quitte le salon vocal et efface la file d'attente.")
+@Slash.Command(name = "stop", description = "Force le robot à quitter le salon vocal et efface sa file d'attente.")
 public class StopCommand {
     @Slash.Handler()
     public void callback(SlashCommandEvent event) {

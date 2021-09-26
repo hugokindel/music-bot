@@ -18,6 +18,10 @@ public class TrackScheduler extends AudioEventAdapter {
 
     public BlockingQueue<AudioTrack> queue;
 
+    public BlockingQueue<String> queueThumbnails;
+
+    public String currentThumbnail = null;
+
     public boolean playing;
 
     public boolean isSkipping;
@@ -30,11 +34,19 @@ public class TrackScheduler extends AudioEventAdapter {
         this.channelManager = channelManager;
         this.player = player;
         this.queue = new LinkedBlockingQueue<>();
+        this.queueThumbnails = new LinkedBlockingQueue<>();
     }
 
     public void queue(AudioTrack track) {
+        queue(track, null);
+    }
+
+    public void queue(AudioTrack track, String thumbnail) {
         if (!player.startTrack(track, true)) {
             queue.offer(track);
+            queueThumbnails.offer(thumbnail);
+        } else {
+            currentThumbnail = thumbnail;
         }
     }
 
@@ -59,6 +71,7 @@ public class TrackScheduler extends AudioEventAdapter {
                 player.startTrack(lastTrack.makeClone(), false);
             } else {
                 player.startTrack(queue.poll(), false);
+                currentThumbnail = queueThumbnails.poll();
             }
         }
     }

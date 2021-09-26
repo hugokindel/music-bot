@@ -6,9 +6,9 @@ import com.hugokindel.bot.common.Discord;
 import net.azzerial.slash.annotations.Slash;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 
-@Slash.Tag("info")
-@Slash.Command(name = "info", description = "Information sur le robot.")
-public class InfoCommand {
+@Slash.Tag("credits")
+@Slash.Command(name = "credits", description = "Affiche les crédits.")
+public class CreditsCommand {
     @Slash.Handler()
     public void callback(SlashCommandEvent event) {
         handle(new CommandMessage(event, getTitle()));
@@ -16,16 +16,16 @@ public class InfoCommand {
 
     public static void handle(CommandMessage message) {
         message.sendEmbed(String.format(
-                "J'ai été créé par %s dans le but de répondre aux problèmes des bots musicaux sur la plateforme. PRO PLAYER un jour, PRO PLAYER toujours.\n" +
-                "Merci à %s pour le logo\n" +
-                "%s",
+                "Développé par %s.\n" +
+                "Logo créé par %s.\n" +
+                "Remerciements spécial à %s et tous les membres du serveur des **PRO PLAYERS**.",
                 Discord.mentionCreator(),
                 Discord.mention(MusicBot.WANGA_ID),
-                VersionCommand.getVersion()
+                Discord.mention(MusicBot.KAASTIEL_ID)
         ));
     }
 
     public static String getTitle() {
-        return "Info";
+        return "Crédits";
     }
 }

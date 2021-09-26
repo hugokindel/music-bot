@@ -8,7 +8,7 @@ import net.azzerial.slash.annotations.Slash;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 
 @Slash.Tag("loop")
-@Slash.Command(name = "loop", description = "Active/désactive la boucle du son en cour.")
+@Slash.Command(name = "loop", description = "Si le son en cours ne joue pas en boucle, active la boucle sinon la désactive.")
 public class LoopCommand {
     @Slash.Handler()
     public void callback(SlashCommandEvent event) {
@@ -34,7 +34,7 @@ public class LoopCommand {
                     channelManager.trackScheduler.player.getPlayingTrack().getInfo().title
             ));
         } else {
-            message.sendErrorEmbed("Désactivation de la lecture en boucle.");
+            message.sendEmbed("Désactivation de la lecture en boucle.");
         }
 
         channelManager.trackScheduler.looping = !channelManager.trackScheduler.looping;
