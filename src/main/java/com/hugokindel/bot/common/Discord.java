@@ -118,22 +118,14 @@ public class Discord {
     }
 
     public static MessageEmbed createEmbed(String title, String message) {
-        EmbedBuilder eb = new EmbedBuilder();
-
-        eb.setTitle(title);
-        eb.setDescription(message);
-        eb.setFooter("FORX-BOT par Forx.");
-
-        if (MusicBot.get().random.nextInt(2) == 0) {
-            eb.setColor(MusicBot.COLOR_PINK);
-        } else {
-            eb.setColor(MusicBot.COLOR_GREEN);
-        }
-
-        return eb.build();
+        return createEmbed(title, message, null, null);
     }
 
     public static MessageEmbed createEmbed(String title, String message, Color color) {
+        return createEmbed(title, message, color, null);
+    }
+
+    public static MessageEmbed createEmbed(String title, String message, Color color, String thumbnail) {
         EmbedBuilder eb = new EmbedBuilder();
 
         if (title != null && !title.isEmpty()) {
@@ -154,6 +146,10 @@ public class Discord {
             } else {
                 eb.setColor(MusicBot.COLOR_GREEN);
             }
+        }
+
+        if (thumbnail != null && !thumbnail.isEmpty()) {
+            eb.setThumbnail(thumbnail);
         }
 
         return eb.build();

@@ -1,8 +1,6 @@
 package com.hugokindel.bot.music.command;
 
-import com.hugokindel.bot.common.AnyMessage;
 import com.hugokindel.bot.common.CommandMessage;
-import com.hugokindel.bot.common.Discord;
 import net.azzerial.slash.annotations.Slash;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 

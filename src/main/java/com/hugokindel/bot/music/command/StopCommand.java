@@ -3,7 +3,6 @@ package com.hugokindel.bot.music.command;
 import com.hugokindel.bot.common.CommandMessage;
 import com.hugokindel.bot.music.MusicBot;
 import com.hugokindel.bot.music.audio.ChannelMusicManager;
-import com.hugokindel.bot.common.AnyMessage;
 import com.hugokindel.bot.common.Discord;
 import net.azzerial.slash.annotations.Slash;
 ;
