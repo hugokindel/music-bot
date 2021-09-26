@@ -18,7 +18,7 @@ public class VersionCommand {
 
     public static void handle(CommandMessage message) {
         EmbedBuilder eb = new EmbedBuilder();
-        eb.setTitle("Version " + MusicBot.VERSION + " !");
+        eb.setTitle(String.format("Version %s !", MusicBot.getVersion()));
         eb.setFooter("FORX-BOT par Forx.");
         eb.setColor(Discord.getRandomColor());
         message.sendEmbed(eb.build());

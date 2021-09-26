@@ -8,17 +8,19 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import net.dv8tion.jda.api.entities.Activity;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 
 public class TrackScheduler extends AudioEventAdapter {
     public ChannelMusicManager channelManager;
 
     public AudioPlayer player;
 
-    public BlockingQueue<AudioTrack> queue;
+    public Queue<AudioTrack> queue;
 
-    public BlockingQueue<String> queueThumbnails;
+    public Queue<String> queueThumbnails;
 
     public String currentThumbnail = null;
 
@@ -33,8 +35,8 @@ public class TrackScheduler extends AudioEventAdapter {
     public TrackScheduler(ChannelMusicManager channelManager, AudioPlayer player) {
         this.channelManager = channelManager;
         this.player = player;
-        this.queue = new LinkedBlockingQueue<>();
-        this.queueThumbnails = new LinkedBlockingQueue<>();
+        this.queue = new LinkedList<>();
+        this.queueThumbnails = new LinkedList<>();
     }
 
     public void queue(AudioTrack track) {
@@ -79,5 +81,10 @@ public class TrackScheduler extends AudioEventAdapter {
     public void skipTrack() {
         isSkipping = true;
         player.stopTrack();
+    }
+
+    public void shuffle()
+    {
+        Collections.shuffle((List<?>) queue);
     }
 }

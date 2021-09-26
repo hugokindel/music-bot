@@ -5,12 +5,11 @@ import com.hugokindel.bot.music.MusicBot;
 import com.hugokindel.bot.music.audio.ChannelMusicManager;
 import com.hugokindel.bot.common.Discord;
 import net.azzerial.slash.annotations.Slash;
-;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 
-@Slash.Tag("stop")
-@Slash.Command(name = "stop", description = "Force le robot à quitter le salon vocal et efface sa file d'attente.")
-public class StopCommand {
+@Slash.Tag("clear")
+@Slash.Command(name = "clear", description = "Efface la file d'attente.")
+public class ClearCommand {
     @Slash.Handler()
     public void callback(SlashCommandEvent event) {
         handle(new CommandMessage(event, getTitle()));
@@ -18,7 +17,7 @@ public class StopCommand {
 
     public static void handle(CommandMessage message) {
         if (!Discord.checkInGuild(message) ||
-                !Discord.checkInVoiceChannel(message)) {
+            !Discord.checkInVoiceChannel(message)) {
             return;
         }
 
@@ -29,12 +28,12 @@ public class StopCommand {
             return;
         }
 
-        MusicBot.get().getGuildManager(message.guild).freeChannelManager(message.member.getVoiceState().getChannel());
+        channelManager.trackScheduler.queue.clear();
 
-        message.sendEmbed("Le robot va être déconnecté du salon vocal et sa file d'attente sera effacé.");
+        message.sendEmbedTitleOnly("La file d'attente a été effacé.");
     }
 
     public static String getTitle() {
-        return "Stop";
+        return "Effacement de la file d'attente";
     }
 }

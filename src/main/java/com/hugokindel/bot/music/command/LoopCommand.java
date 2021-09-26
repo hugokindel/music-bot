@@ -8,7 +8,7 @@ import net.azzerial.slash.annotations.Slash;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 
 @Slash.Tag("loop")
-@Slash.Command(name = "loop", description = "Si le son en cours ne joue pas en boucle, active la boucle sinon la désactive.")
+@Slash.Command(name = "loop", description = "Si la piste en cours de lecture ne joue pas en boucle, active la boucle sinon la désactive.")
 public class LoopCommand {
     @Slash.Handler()
     public void callback(SlashCommandEvent event) {

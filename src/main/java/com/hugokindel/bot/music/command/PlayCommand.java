@@ -6,6 +6,7 @@ import com.hugokindel.bot.common.CommandMessage;
 import com.hugokindel.bot.music.MusicBot;
 import com.hugokindel.bot.music.audio.ChannelMusicManager;
 import com.hugokindel.bot.common.Discord;
+import com.hugokindel.common.cli.print.Out;
 import com.hugokindel.common.utility.StringUtil;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
@@ -15,14 +16,62 @@ import com.wrapper.spotify.model_objects.specification.*;
 import net.azzerial.slash.annotations.Option;
 import net.azzerial.slash.annotations.OptionType;
 import net.azzerial.slash.annotations.Slash;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Slash.Tag("play")
-@Slash.Command(name = "play", description = "Si aucun son n'est en cours joue le son ou la playlist demandé sinon le rajoute à la file d'attente.", options = {
+@Slash.Command(name = "play", description = "Joue la piste ou la playlist demandé sinon la rajoute à la file d'attente.", options = {
         @Option(name = "requête", description = "URL ou recherche.", type = OptionType.STRING, required = true)
 })
 public class PlayCommand {
+    public static class PlayingMessage {
+        public String start = "";
+
+        public List<String> wait = new ArrayList<>();
+
+        public List<String> errors = new ArrayList<>();
+
+        public MessageEmbed build(ChannelMusicManager channelManager, CommandMessage message) {
+            EmbedBuilder eb = new EmbedBuilder();
+            if (message.thumbnailUrl != null && !message.thumbnailUrl.isEmpty()) {
+                eb.setThumbnail(channelManager.trackScheduler.currentThumbnail);
+            }
+            eb.setTitle(getTitle());
+            eb.setFooter("FORX-BOT par Forx.");
+            eb.setColor(Discord.getRandomColor());
+            if (!start.isEmpty()) {
+                eb.addField(new MessageEmbed.Field(
+                        "Début de la piste audio",
+                        start,
+                        false
+                ));
+            }
+            if (!wait.isEmpty()) {
+                StringBuilder queue = new StringBuilder();
+                String[] tracks = wait.toArray(new String[0]);
+
+                for (int i = 0; i < wait.size(); i++) {
+                    if (queue.length() > 0) {
+                        queue.append("\n");
+                    }
+
+                    queue.append(i + 1).append(". ").append(tracks[i]);
+                }
+
+                eb.addField(new MessageEmbed.Field(
+                        "Ajout à la file d'attente",
+                        queue.toString(),
+                        false
+                ));
+            }
+            return eb.build();
+        }
+    }
+
     @Slash.Handler()
     public void callback(SlashCommandEvent event) {
         handle(new CommandMessage(event, getTitle()));
@@ -35,6 +84,8 @@ public class PlayCommand {
             return;
         }
 
+        PlayingMessage playingMessage = new PlayingMessage();
+
         ChannelMusicManager channelManager = MusicBot.get().getGuildManager(message.guild).getChannelManager(message.member.getVoiceState().getChannel());
         channelManager.messageChannel = message.messageChannel;
 
@@ -45,7 +96,7 @@ public class PlayCommand {
         }
 
         boolean isUrl = StringUtil.isUrl(search);
-        String thumbnailUrl = null;
+        String thumbnailUrl;
 
         if (isUrl) {
             if (search.contains("spotify.com")) {
@@ -84,7 +135,7 @@ public class PlayCommand {
 
                                 Track request2 = MusicBot.get().spotifyApi.getTrack(tracks.getItems()[i].getTrack().getId()).build().execute();
                                 search = "ytsearch: " + request2.getArtists()[0].getName() + " " + request2.getName();
-                                doSearch(channelManager, search, message, false);
+                                doSearch(channelManager, search, message, false, playingMessage);
                             }
 
                             return;
@@ -107,7 +158,7 @@ public class PlayCommand {
                                 }
 
                                 search = "ytsearch: " + tracks.getItems()[i].getArtists()[0].getName() + " " + tracks.getItems()[i].getName();
-                                doSearch(channelManager, search, message, false);
+                                doSearch(channelManager, search, message, false, playingMessage);
                             }
 
                             return;
@@ -131,7 +182,7 @@ public class PlayCommand {
                         }
                         search = "ytsearch: " + tracks.getItems()[0].getArtists()[0].getName() + " " + tracks.getItems()[0].getName();
                     } else {
-                        message.sendErrorEmbed("Impossible de trouver le son voulu !");
+                        message.sendErrorEmbed("Impossible de trouver la piste voulu !");
                         return;
                     }
                 } catch (Exception e) {
@@ -142,14 +193,14 @@ public class PlayCommand {
             }
         }
 
-        doSearch(channelManager, search, message, isUrl);
+        doSearch(channelManager, search, message, isUrl, playingMessage);
     }
 
     public static void play(Guild guild, VoiceChannel voiceChannel, String query) {
-        doSearch(MusicBot.get().getGuildManager(guild).getChannelManager(voiceChannel), query, null, true);
+        doSearch(MusicBot.get().getGuildManager(guild).getChannelManager(voiceChannel), query, null, true, null);
     }
 
-    public static void doSearch(ChannelMusicManager channelManager, String query, CommandMessage message, boolean isUrl) {
+    public static void doSearch(ChannelMusicManager channelManager, String query, CommandMessage message, boolean isUrl, PlayingMessage playingMessage) {
         MusicBot.get().playerManager.loadItemOrdered(channelManager, query, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
@@ -158,18 +209,16 @@ public class PlayCommand {
                 }
 
                 if (!channelManager.trackScheduler.playing) {
-                    if (message != null) {
-                        message.appendAndSendEmbed(String.format(
-                                "Début de la lecture de `%s`.",
-                                track.getInfo().title
-                        ));
+                    if (message != null && playingMessage != null) {
+                        Out.println("qsd");
+                        playingMessage.start = track.getInfo().title;
+                        message.sendEmbed(playingMessage.build(channelManager, message));
                     }
                 } else {
-                    if (message != null) {
-                        message.appendAndSendEmbed(String.format(
-                                "Ajout à la file d'attente de `%s`.",
-                                track.getInfo().title
-                        ));
+                    if (message != null && playingMessage != null) {
+                        Out.println("ads");
+                        playingMessage.wait.add(track.getInfo().title);
+                        message.sendEmbed(playingMessage.build(channelManager, message));
                     }
                 }
 
@@ -199,18 +248,17 @@ public class PlayCommand {
                     AudioTrack track = playlist.getTracks().get(i);
 
                     if (!channelManager.trackScheduler.playing) {
-                        if (message != null) {
-                            message.appendAndSendEmbed(String.format(
-                                    "Début de la lecture de `%s`.",
-                                    track.getInfo().title
-                            ));
+                        if (message != null && playingMessage != null) {
+                            Out.println("sdf");
+                            playingMessage.start = track.getInfo().title;
+                            message.sendEmbed(playingMessage.build(channelManager, message));
+
                         }
                     } else {
-                        if (message != null) {
-                            message.appendAndSendEmbed(String.format(
-                                    "Ajout à la file d'attente de `%s`.",
-                                    track.getInfo().title
-                            ));
+                        if (message != null && playingMessage != null) {
+                            Out.println("gfh");
+                            playingMessage.wait.add(track.getInfo().title);
+                            message.sendEmbed(playingMessage.build(channelManager, message));
                         }
                     }
 
@@ -229,8 +277,7 @@ public class PlayCommand {
                 }
 
                 if (message != null) {
-                    // TODO: Add sound name
-                    message.appendAndSendEmbed("Impossible de trouver le son voulu !", true);
+                    message.appendAndSendEmbed("Impossible de trouver la piste voulu !", true);
                 }
             }
 
@@ -243,14 +290,13 @@ public class PlayCommand {
                 exception.printStackTrace();
 
                 if (message != null) {
-                    // TODO: Add sound name
-                    message.appendAndSendEmbed("Impossible de jouer le son voulu !", true);
+                    message.appendAndSendEmbed("Impossible de jouer la piste voulu !", true);
                 }
             }
         });
     }
 
     public static String getTitle() {
-        return "Lecture";
+        return "Lecture de pistes audio";
     }
 }

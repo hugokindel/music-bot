@@ -1,81 +1,40 @@
 package com.hugokindel.common.utility;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 
 public class FormatUtil {
-    
-    public static String formatTime(long duration)
-    {
-        if(duration == Long.MAX_VALUE)
-            return "LIVE";
-        long seconds = Math.round(duration/1000.0);
-        long hours = seconds/(60*60);
-        seconds %= 60*60;
-        long minutes = seconds/60;
-        seconds %= 60;
-        return (hours>0 ? hours+":" : "") + (minutes<10 ? "0"+minutes : minutes) + ":" + (seconds<10 ? "0"+seconds : seconds);
-    }
-        
-    public static String progressBar(double percent)
-    {
-        String str = "";
-        for(int i=0; i<12; i++)
-            if(i == (int)(percent*12))
-                str+="\uD83D\uDD18"; // 🔘
-            else
-                str+="▬";
-        return str;
-    }
-    
-    public static String volumeIcon(int volume)
-    {
-        if(volume == 0)
-            return "\uD83D\uDD07"; // 🔇
-        if(volume < 30)
-            return "\uD83D\uDD08"; // 🔈
-        if(volume < 70)
-            return "\uD83D\uDD09"; // 🔉
-        return "\uD83D\uDD0A";     // 🔊
-    }
-    
-    public static String listOfTChannels(List<TextChannel> list, String query)
-    {
-        String out = " Multiple text channels found matching \""+query+"\":";
-        for(int i=0; i<6 && i<list.size(); i++)
-            out+="\n - "+list.get(i).getName()+" (<#"+list.get(i).getId()+">)";
-        if(list.size()>6)
-            out+="\n**And "+(list.size()-6)+" more...**";
-        return out;
-    }
-    
-    public static String listOfVChannels(List<VoiceChannel> list, String query)
-    {
-        String out = " Multiple voice channels found matching \""+query+"\":";
-        for(int i=0; i<6 && i<list.size(); i++)
-            out+="\n - "+list.get(i).getName()+" (ID:"+list.get(i).getId()+")";
-        if(list.size()>6)
-            out+="\n**And "+(list.size()-6)+" more...**";
-        return out;
-    }
-    
-    public static String listOfRoles(List<Role> list, String query)
-    {
-        String out = " Multiple text channels found matching \""+query+"\":";
-        for(int i=0; i<6 && i<list.size(); i++)
-            out+="\n - "+list.get(i).getName()+" (ID:"+list.get(i).getId()+")";
-        if(list.size()>6)
-            out+="\n**And "+(list.size()-6)+" more...**";
-        return out;
-    }
-    
-    public static String filter(String input)
-    {
-        return input.replace("\u202E","")
-                .replace("@everyone", "@\u0435veryone") // cyrillic letter e
-                .replace("@here", "@h\u0435re") // cyrillic letter e
-                .trim();
+    public static long convertTimestamp(String timestamp) throws ParseException {
+        DateFormat dateFormat = null;
+        String[] splittedTimestamp = timestamp.split(":");
+        int count = splittedTimestamp.length;
+        String[] fixedTimestamp = new String[count];
+
+        for (int i = 0; i < count; i++) {
+            if (splittedTimestamp[i].length() == 1) {
+                fixedTimestamp[i] = "0" + splittedTimestamp[i];
+            } else if (splittedTimestamp[i].length() > 2 || splittedTimestamp[i].length() < 1) {
+                throw new ParseException("Invalid timestamp, part is longer than 2 chars.", i);
+            } else {
+                fixedTimestamp[i] = splittedTimestamp[i];
+            }
+        }
+
+        if (count == 1)
+            dateFormat = new SimpleDateFormat("ss");
+        else if (count == 2)
+            dateFormat = new SimpleDateFormat("mm:ss");
+        else if (count > 2)
+            dateFormat = new SimpleDateFormat("HH:mm:ss");
+
+        assert dateFormat != null;
+        return dateFormat.parse(String.join(":", fixedTimestamp)).getTime() + TimeUnit.HOURS.toMillis(1);
     }
 }

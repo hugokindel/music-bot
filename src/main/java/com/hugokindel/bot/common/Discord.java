@@ -31,7 +31,7 @@ public class Discord {
 
     public static boolean checkInGuild(CommandMessage message) {
         if (message.guild == null) {
-            message.sendErrorEmbed("Tu dois être dans un serveur pour utiliser cette commande !");
+            message.sendErrorEmbed("Tu doit être dans un serveur pour utiliser cette commande !");
             return false;
         }
 
@@ -42,7 +42,7 @@ public class Discord {
         VoiceChannel channel = message.member.getVoiceState().getChannel();
 
         if (channel == null) {
-            message.sendErrorEmbed("Tu dois être dans un salon audio pour utiliser cette commande !");
+            message.sendErrorEmbed("Tu doit être dans un salon audio pour utiliser cette commande !");
             return false;
         }
 
@@ -64,7 +64,16 @@ public class Discord {
 
     public static boolean checkSongPlaying(CommandMessage message, ChannelMusicManager channelManager) {
         if (!channelManager.trackScheduler.playing) {
-            message.sendErrorEmbed("Un son doit être en train de jouer pour utiliser cette commande !");
+            message.sendErrorEmbed("Une piste audio doit être en train de jouer pour utiliser cette commande !");
+            return false;
+        }
+
+        return true;
+    }
+
+    public static boolean checkQueueNotEmpty(CommandMessage message, ChannelMusicManager channelManager) {
+        if (channelManager.trackScheduler.queue.isEmpty()) {
+            message.sendErrorEmbed("La file d'attente ne doit pas être vide pour utiliser cette commande !");
             return false;
         }
 
@@ -73,7 +82,7 @@ public class Discord {
 
     public static boolean checkSongNotPaused(CommandMessage message, ChannelMusicManager channelManager) {
         if (channelManager.trackScheduler.player.isPaused()) {
-            message.sendErrorEmbed("Un son doit être en train de jouer pour utiliser cette commande !");
+            message.sendErrorEmbed("Une piste audio doit être en train de jouer pour utiliser cette commande !");
             return false;
         }
 
@@ -82,7 +91,7 @@ public class Discord {
 
     public static boolean checkSongPaused(CommandMessage message, ChannelMusicManager channelManager) {
         if (!channelManager.trackScheduler.player.isPaused()) {
-            message.sendErrorEmbed("Un son doit être en pause pour utiliser cette commande !");
+            message.sendErrorEmbed("Une piste audio doit être en pause pour utiliser cette commande !");
             return false;
         }
 

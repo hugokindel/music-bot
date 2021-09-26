@@ -7,7 +7,6 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 
-
 @Slash.Tag("help")
 @Slash.Command(name = "help", description = "Affiche un message d'aide.")
 public class HelpCommand {
@@ -35,40 +34,90 @@ public class HelpCommand {
 
         eb.addField(new MessageEmbed.Field(
                 "/play <requête>",
-                "Si aucun son n'est en cours, joue le son ou la playlist demandé sinon le rajoute à la file d'attente.\n" +
-                "Il est possible de jouer des sons *YouTube*, *SoundCloud*, *Spotify* ainsi qu'un certains nombre de format audio par lien direct (MP3, FLAC, WAV, MKV, MP4, OGG) et même des streams *Twitch*.\n" +
-                "Il existe des préfix utilisable pour spécifier sur quel site effectuer une recherche: `ytsearch:`, `scsearch:` et `spsearch:`.\n" +
-                "Example: `/play scsearch: Lil Nas X` (recherche Lil Nas X sur SoundCloud)",
+                "Si aucune piste n'est en cours de lecture, joue la piste ou la playlist demandé sinon la rajoute à la file d'attente.\n" +
+                "Il est possible de jouer des pistes depuis *YouTube*, *SoundCloud*, *Spotify* ainsi qu'un certains nombre de format audio par lien direct (MP3, FLAC, WAV, MKV, MP4, OGG) et même des streams *Twitch*.\n" +
+                "Il existe des préfixes utilisable pour spécifier sur quel site effectuer une recherche: `ytsearch:`, `scsearch:` et `spsearch:`.\n" +
+                "Une requête est obligatoire.\n" +
+                "Exemple: `/play scsearch: Lil Nas X` (recherche Lil Nas X sur SoundCloud).",
                 false
         ));
 
         eb.addField(new MessageEmbed.Field(
                 "/pause",
-                "Si un son est en cours, le met en pause sinon le reprends.",
+                "Si une piste est en cours de lecture, la met en pause sinon la reprends.",
                 false
         ));
 
         eb.addField(new MessageEmbed.Field(
-                "/skip",
-                "Passe le son en cours.",
+                "/skip <nombre>",
+                "Passe le nombre voulu de pistes.\n" +
+                "Le nombre n'est pas obligatoire (1 par défaut).",
                 false
         ));
 
         eb.addField(new MessageEmbed.Field(
-                "/loop",
-                "Si le son en cours ne joue pas en boucle, active la boucle sinon la désactive.",
+                "/remove <index>",
+                "Efface la piste voulue de la file d'attente.\n" +
+                "L'index de la piste a effacer est nécessaire.",
                 false
         ));
 
         eb.addField(new MessageEmbed.Field(
-                "/stop",
+                "/move <index> <position>",
+                "Déplace un élément de la file d'attente.\n" +
+                "L'index de la piste audio a effacer ainsi que sa nouvelle position sont nécessaires.",
+                false
+        ));
+
+        eb.addField(new MessageEmbed.Field(
+                "/clear",
+                "Efface la file d'attente.",
+                false
+        ));
+
+        eb.addField(new MessageEmbed.Field(
+                "/leave",
                 "Force le robot à quitter le salon vocal et efface sa file d'attente.",
                 false
         ));
 
         eb.addField(new MessageEmbed.Field(
+                "/loop",
+                "Si la piste en cours de lecture ne joue pas en boucle, active la boucle sinon la désactive.",
+                false
+        ));
+
+        eb.addField(new MessageEmbed.Field(
                 "/nowplaying",
-                "Affiche le son en cours et la file d'attente.",
+                "Affiche la file de lecture.",
+                false
+        ));
+
+        eb.addField(new MessageEmbed.Field(
+                "/seek <durée>",
+                "Va à la durée spécifiée dans la piste en cours de lecture.\n" +
+                "La durée est obligatoire et doit être au format hh:mm:ss.\n" +
+                "Exemple: `/seek 1:50` (Va à 1min50 dans la piste en cours de lecture).",
+                false
+        ));
+
+        eb.addField(new MessageEmbed.Field(
+                "/forward <durée>",
+                "Avance de la durée spécifiée dans la piste en cours de lecture.\n" +
+                "La durée n'est pas obligatoire (10s par défaut), si définit elle doit être au format hh:mm:ss.\n",
+                false
+        ));
+
+        eb.addField(new MessageEmbed.Field(
+                "/backward <durée>",
+                "Recule de la durée spécifiée dans la piste en cours de lecture.\n" +
+                "La durée n'est pas obligatoire (10s par défaut), si définit elle doit être au format hh:mm:ss.\n",
+                false
+        ));
+
+        eb.addField(new MessageEmbed.Field(
+                "/shuffle",
+                "Trie la file d'attente de manière aléatoire.",
                 false
         ));
 

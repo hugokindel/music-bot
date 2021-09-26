@@ -11,6 +11,7 @@ import com.hugokindel.bot.music.audio.GuildMusicManager;
 import com.hugokindel.bot.music.audio.PlayerManager;
 import com.hugokindel.bot.music.command.*;
 import com.hugokindel.bot.music.command.empty.ResumeCommand;
+import com.hugokindel.bot.music.command.empty.StopCommand;
 import com.hugokindel.common.BaseProgram;
 import com.hugokindel.common.cli.option.annotation.Command;
 import com.hugokindel.common.cli.print.In;
@@ -23,6 +24,7 @@ import com.wrapper.spotify.model_objects.credentials.ClientCredentials;
 import com.wrapper.spotify.requests.authorization.client_credentials.ClientCredentialsRequest;
 import net.azzerial.slash.SlashClient;
 import net.azzerial.slash.SlashClientBuilder;
+import net.azzerial.slash.annotations.Slash;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.exceptions.ErrorHandler;
@@ -46,15 +48,13 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@Command(name = "bot", version = "1.0.0", description = "A bot for music streaming.")
+@Command(name = "bot", version = "1.0.0", description = "Un robot pour le streaming de musique sur la plateforme Discord.")
 public class MusicBot extends BaseProgram {
     public static final Color COLOR_RED = new Color(255, 0, 0);
 
     public static final Color COLOR_PINK = new Color(255, 0, 255);
 
     public static final Color COLOR_GREEN = new Color(0, 255, 0);
-
-    public static final String VERSION = "1.0.0";
 
     public static final String WANGA_ID = "578163510027223050";
 
@@ -131,8 +131,8 @@ public class MusicBot extends BaseProgram {
         }
 
         Out.println("---- MUSIC-BOT ----");
-        Out.println("Version: 1.0.0     ");
-        Out.println("Made by Forx       ");
+        Out.println(String.format("Version: %s", getVersion()));
+        Out.println("Made by Forx");
         Out.println("-------------------");
 
         loadConfig();
@@ -299,47 +299,40 @@ public class MusicBot extends BaseProgram {
     }
 
     private void mainLogic() throws Exception {
+        Out.println("Initialized host...");
+
         host = new Bot(Bot.Type.Host, config.hostToken, Activity.listening("les envies des pro players !"));
 
-        final SlashClient slash = SlashClientBuilder
-                .create(host.client)
-                .addCommand(new PlayCommand())
-                .addCommand(new SkipCommand())
-                .addCommand(new StopCommand())
-                .addCommand(new PauseCommand())
-                .addCommand(new NowPlayingCommand())
-                .addCommand(new LoopCommand())
-                .addCommand(new CreditsCommand())
-                .addCommand(new HelpCommand())
-                .addCommand(new VersionCommand())
-                .addCommand(new PingCommand())
-                .addCommand(new RestartCommand())
-                .addCommand(new ShutdownCommand())
-                .addCommand(new ResumeCommand())
-                .build();
+        SlashClientBuilder slashClientBuilder = SlashClientBuilder.create(host.client);
 
-        slash.getCommand("play").upsertGuild(config.guildId);
-        slash.getCommand("skip").upsertGuild(config.guildId);
-        slash.getCommand("stop").upsertGuild(config.guildId);
-        slash.getCommand("pause").upsertGuild(config.guildId);
-        slash.getCommand("resume").upsertGuild(config.guildId);
-        slash.getCommand("nowplaying").upsertGuild(config.guildId);
-        slash.getCommand("loop").upsertGuild(config.guildId);
-        slash.getCommand("credits").upsertGuild(config.guildId);
-        slash.getCommand("help").upsertGuild(config.guildId);
-        slash.getCommand("version").upsertGuild(config.guildId);
-        slash.getCommand("ping").upsertGuild(config.guildId);
-        slash.getCommand("restart").upsertGuild(config.guildId);
-        slash.getCommand("shutdown").upsertGuild(config.guildId);
+        for (Class<?> c : commandClasses) {
+            if (c.isAnnotationPresent(Slash.Tag.class)) {
+                slashClientBuilder.addCommand(c.getConstructors()[0].newInstance());
+            }
+        }
 
-        slash.getCommand("resume").deleteGuild(config.guildId);
-        slash.getCommand("resume").deleteGlobal();
+        SlashClient slash = slashClientBuilder.build();
+
+        for (Class<?> c : commandClasses) {
+            if (c.isAnnotationPresent(Slash.Tag.class)) {
+                Slash.Tag tag = c.getAnnotation(Slash.Tag.class);
+                if (c.getName().contains(".empty.")) {
+                    Out.println(String.format("Deleting command `%s`...", tag.value()));
+                    slash.getCommand(tag.value()).deleteGlobal();
+                } else {
+                    Out.println(String.format("Creating command `%s`...", tag.value()));
+                    slash.getCommand(tag.value()).upsertGlobal();
+                }
+            }
+        }
+
+        Out.println("Initializing workers...");
 
         for (int i = 0; i < config.workerTokens.size(); i++) {
             workers.add(new Bot(Bot.Type.Worker, config.workerTokens.get(i), Activity.listening("rien")));
         }
 
-        Out.println("Bot initialized.");
+        Out.println("Everything is ready.");
 
         if (config.eventName.equals("welcome")) {
             eventWelcome();
@@ -446,6 +439,10 @@ public class MusicBot extends BaseProgram {
                 PlayCommand.play(guild, voiceChannel, "https://forx-bot.s3.eu-west-3.amazonaws.com/events/welcome-2.mp3");
             }
         }
+    }
+
+    public static String getVersion() {
+        return MusicBot.class.getAnnotation(Command.class).version();
     }
 
     protected static class CliInteractionRunnable implements Runnable {

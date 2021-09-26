@@ -10,9 +10,9 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 
-@Slash.Tag("nowplaying")
-@Slash.Command(name = "nowplaying", description = "Affiche la file de lecture.")
-public class NowPlayingCommand {
+@Slash.Tag("shuffle")
+@Slash.Command(name = "shuffle", description = "Trie la file d'attente de manière aléatoire.")
+public class ShuffleCommand {
     @Slash.Handler()
     public void callback(SlashCommandEvent event) {
         handle(new CommandMessage(event, getTitle()));
@@ -27,9 +27,11 @@ public class NowPlayingCommand {
         ChannelMusicManager channelManager = MusicBot.get().getGuildManager(message.guild).getChannelManager(message.member.getVoiceState().getChannel());
         channelManager.messageChannel = message.messageChannel;
 
-        if (!Discord.checkSongPlaying(message, channelManager)) {
+        if (!Discord.checkQueueNotEmpty(message, channelManager)) {
             return;
         }
+
+        channelManager.trackScheduler.shuffle();
 
         EmbedBuilder eb = new EmbedBuilder();
         if (channelManager.trackScheduler.currentThumbnail != null) {
@@ -38,11 +40,7 @@ public class NowPlayingCommand {
         eb.setTitle(getTitle());
         eb.setFooter("FORX-BOT par Forx.");
         eb.setColor(Discord.getRandomColor());
-        eb.addField(new MessageEmbed.Field(
-                "Piste audio en cours",
-                channelManager.trackScheduler.player.getPlayingTrack().getInfo().title,
-                false
-        ));
+        eb.setDescription("La file d'attente a été triée aléatoirement.");
         StringBuilder queue = new StringBuilder();
         if (!channelManager.trackScheduler.queue.isEmpty()) {
             AudioTrack[] tracks = channelManager.trackScheduler.queue.toArray(new AudioTrack[0]);
@@ -65,6 +63,6 @@ public class NowPlayingCommand {
     }
 
     public static String getTitle() {
-        return "Historique de lecture";
+        return "Trie aléatoire";
     }
 }

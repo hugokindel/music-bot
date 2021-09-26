@@ -120,6 +120,10 @@ public class CommandMessage {
         handleEmbed(Discord.createEmbed(answerTitle, answer, null, thumbnailUrl));
     }
 
+    public void sendEmbedTitleOnly(String answer) {
+        handleEmbed(Discord.createEmbed(answer, null, null, thumbnailUrl));
+    }
+
     public void sendEmbed(String answer, Color color) {
         handleEmbed(Discord.createEmbed(answerTitle, answer, color, thumbnailUrl));
     }

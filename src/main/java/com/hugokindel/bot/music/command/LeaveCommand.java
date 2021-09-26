@@ -5,11 +5,12 @@ import com.hugokindel.bot.music.MusicBot;
 import com.hugokindel.bot.music.audio.ChannelMusicManager;
 import com.hugokindel.bot.common.Discord;
 import net.azzerial.slash.annotations.Slash;
+;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 
-@Slash.Tag("pause")
-@Slash.Command(name = "pause", description = "Si une piste est en cours de lecture, la met en pause sinon le reprends.")
-public class PauseCommand {
+@Slash.Tag("leave")
+@Slash.Command(name = "leave", description = "Force le robot à quitter le salon vocal et efface sa file d'attente.")
+public class LeaveCommand {
     @Slash.Handler()
     public void callback(SlashCommandEvent event) {
         handle(new CommandMessage(event, getTitle()));
@@ -17,7 +18,7 @@ public class PauseCommand {
 
     public static void handle(CommandMessage message) {
         if (!Discord.checkInGuild(message) ||
-            !Discord.checkInVoiceChannel(message)) {
+                !Discord.checkInVoiceChannel(message)) {
             return;
         }
 
@@ -28,16 +29,12 @@ public class PauseCommand {
             return;
         }
 
-        if (channelManager.trackScheduler.player.isPaused()) {
-            channelManager.trackScheduler.player.setPaused(false);
-            message.sendEmbed("La lecture de la piste en cours va reprendre.");
-        } else {
-            channelManager.trackScheduler.player.setPaused(true);
-            message.sendEmbed("La lecture de la piste en cours va être mis en pause.");
-        }
+        MusicBot.get().getGuildManager(message.guild).freeChannelManager(message.member.getVoiceState().getChannel());
+
+        message.sendEmbed("Le robot va être déconnecté du salon vocal et sa file d'attente sera effacé.");
     }
 
     public static String getTitle() {
-        return "Pause/reprise de lecture";
+        return "Au revoir";
     }
 }
