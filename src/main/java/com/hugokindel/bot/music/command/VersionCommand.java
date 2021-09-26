@@ -1,8 +1,10 @@
 package com.hugokindel.bot.music.command;
 
 import com.hugokindel.bot.common.CommandMessage;
+import com.hugokindel.bot.common.Discord;
 import com.hugokindel.bot.music.MusicBot;
 import net.azzerial.slash.annotations.Slash;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 
 
@@ -15,11 +17,11 @@ public class VersionCommand {
     }
 
     public static void handle(CommandMessage message) {
-        message.sendEmbed(getVersion());
-    }
-
-    public static String getVersion() {
-        return "Nous sommes actuellement en " + MusicBot.VERSION + ".";
+        EmbedBuilder eb = new EmbedBuilder();
+        eb.setTitle("Version " + MusicBot.VERSION + " !");
+        eb.setFooter("FORX-BOT par Forx.");
+        eb.setColor(Discord.getRandomColor());
+        message.sendEmbed(eb.build());
     }
 
     public static String getTitle() {

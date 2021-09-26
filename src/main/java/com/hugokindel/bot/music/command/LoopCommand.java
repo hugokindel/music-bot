@@ -29,10 +29,7 @@ public class LoopCommand {
         }
 
         if (!channelManager.trackScheduler.looping) {
-            message.sendEmbed(String.format(
-                    "Lecture en boucle de `%s`.",
-                    channelManager.trackScheduler.player.getPlayingTrack().getInfo().title
-            ));
+            message.sendEmbed("Activation de la lecture en boucle.");
         } else {
             message.sendEmbed("Désactivation de la lecture en boucle.");
         }

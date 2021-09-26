@@ -31,13 +31,6 @@ public class NowPlayingCommand {
             return;
         }
 
-        /*message.sendEmbed(String.format(
-                "Lecture de `%s`.",
-                channelManager.trackScheduler.player.getPlayingTrack().getInfo().title
-        ));
-
-        message.sendEmbed(String.format());*/
-
         EmbedBuilder eb = new EmbedBuilder();
         if (channelManager.trackScheduler.currentThumbnail != null) {
             eb.setThumbnail(channelManager.trackScheduler.currentThumbnail);

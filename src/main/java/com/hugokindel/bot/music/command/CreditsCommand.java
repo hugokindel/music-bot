@@ -4,6 +4,8 @@ import com.hugokindel.bot.common.CommandMessage;
 import com.hugokindel.bot.music.MusicBot;
 import com.hugokindel.bot.common.Discord;
 import net.azzerial.slash.annotations.Slash;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 
 @Slash.Tag("credits")
@@ -15,14 +17,32 @@ public class CreditsCommand {
     }
 
     public static void handle(CommandMessage message) {
-        message.sendEmbed(String.format(
-                "Développé par %s.\n" +
-                "Logo créé par %s.\n" +
-                "Remerciements spécial à %s et tous les membres du serveur des **PRO PLAYERS**.",
-                Discord.mentionCreator(),
-                Discord.mention(MusicBot.WANGA_ID),
-                Discord.mention(MusicBot.KAASTIEL_ID)
+        EmbedBuilder eb = new EmbedBuilder();
+
+        eb.addField(new MessageEmbed.Field(
+                "Développeur",
+                "- " + Discord.mentionCreator(),
+                false
         ));
+
+        eb.addField(new MessageEmbed.Field(
+                "Créateur du logo",
+                "- " + Discord.mention(MusicBot.WANGA_ID),
+                false
+        ));
+
+        eb.addField(new MessageEmbed.Field(
+                "Remerciements à",
+                "- " + Discord.mention(MusicBot.KAASTIEL_ID) + "\n" +
+                "- Tous les du serveur des **PRO PLAYERS** !",
+                false
+        ));
+
+        eb.setTitle(getTitle());
+        eb.setFooter("FORX-BOT par Forx.");
+        eb.setColor(Discord.getRandomColor());
+
+        message.sendEmbed(eb.build());
     }
 
     public static String getTitle() {

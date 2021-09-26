@@ -10,7 +10,6 @@ import com.hugokindel.bot.common.Discord;
 import com.hugokindel.bot.music.audio.GuildMusicManager;
 import com.hugokindel.bot.music.audio.PlayerManager;
 import com.hugokindel.bot.music.command.*;
-import com.hugokindel.bot.music.command.empty.InfoCommand;
 import com.hugokindel.bot.music.command.empty.ResumeCommand;
 import com.hugokindel.common.BaseProgram;
 import com.hugokindel.common.cli.option.annotation.Command;
@@ -47,7 +46,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@Command(name = "bot", version = "0.1.0", description = "A bot for music streaming.")
+@Command(name = "bot", version = "1.0.0", description = "A bot for music streaming.")
 public class MusicBot extends BaseProgram {
     public static final Color COLOR_RED = new Color(255, 0, 0);
 
@@ -55,7 +54,7 @@ public class MusicBot extends BaseProgram {
 
     public static final Color COLOR_GREEN = new Color(0, 255, 0);
 
-    public static final String VERSION = "alpha 6";
+    public static final String VERSION = "1.0.0";
 
     public static final String WANGA_ID = "578163510027223050";
 
@@ -261,7 +260,12 @@ public class MusicBot extends BaseProgram {
                     Bot worker = workers.get(i);
 
                     Guild guild = worker.client.getGuildById(config.guildId);
-                    GuildVoiceState voiceState = worker.client.getGuildById(config.guildId).getSelfMember().getVoiceState();
+
+                    if (guild == null) {
+                        return;
+                    }
+
+                    GuildVoiceState voiceState = guild.getSelfMember().getVoiceState();
 
                     if (!unusedWorkers.containsKey(i) && voiceState.inVoiceChannel()) {
                         VoiceChannel voiceChannel = voiceState.getChannel();
@@ -311,7 +315,6 @@ public class MusicBot extends BaseProgram {
                 .addCommand(new PingCommand())
                 .addCommand(new RestartCommand())
                 .addCommand(new ShutdownCommand())
-                .addCommand(new InfoCommand())
                 .addCommand(new ResumeCommand())
                 .build();
 
@@ -329,8 +332,8 @@ public class MusicBot extends BaseProgram {
         slash.getCommand("restart").upsertGuild(config.guildId);
         slash.getCommand("shutdown").upsertGuild(config.guildId);
 
-        slash.getCommand("info").deleteGuild(config.guildId);
         slash.getCommand("resume").deleteGuild(config.guildId);
+        slash.getCommand("resume").deleteGlobal();
 
         for (int i = 0; i < config.workerTokens.size(); i++) {
             workers.add(new Bot(Bot.Type.Worker, config.workerTokens.get(i), Activity.listening("rien")));
