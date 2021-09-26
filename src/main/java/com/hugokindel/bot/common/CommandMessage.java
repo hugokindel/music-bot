@@ -41,6 +41,8 @@ public class CommandMessage {
 
     public OffsetDateTime answerTimeCreated;
 
+    public String thumbnailUrl;
+
     public CommandMessage(SlashCommandEvent event, String answerTitle) {
         guild = event.getGuild();
         messageChannel = event.getMessageChannel();
@@ -115,14 +117,18 @@ public class CommandMessage {
     }
 
     public void sendEmbed(String answer) {
-        handleEmbed(Discord.createEmbed(answerTitle, answer));
+        handleEmbed(Discord.createEmbed(answerTitle, answer, null, thumbnailUrl));
     }
 
     public void sendEmbed(String answer, Color color) {
-        handleEmbed(Discord.createEmbed(answerTitle, answer, color));
+        handleEmbed(Discord.createEmbed(answerTitle, answer, color, thumbnailUrl));
     }
 
     public void appendAndSendEmbed(String answer) {
+        appendAndSendEmbed(answer, false);
+    }
+
+    public void appendAndSendEmbed(String answer, boolean isError) {
         if (answerMessage == null) {
             answerMessage = "";
         } else {
@@ -131,11 +137,11 @@ public class CommandMessage {
 
         answerMessage += answer;
 
-        handleEmbed(Discord.createEmbed(answerTitle, answerMessage));
+        handleEmbed(Discord.createEmbed(answerTitle, answerMessage, isError ? MusicBot.COLOR_RED : null, thumbnailUrl));
     }
 
     public void sendErrorEmbed(String text) {
-        handleEmbed(Discord.createEmbed(text, null, MusicBot.COLOR_RED));
+        handleEmbed(Discord.createEmbed(text, null, MusicBot.COLOR_RED, thumbnailUrl));
     }
 
     private void handlingCommand() {

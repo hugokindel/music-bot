@@ -1,6 +1,5 @@
 package com.hugokindel.bot.music.command;
 
-import com.hugokindel.bot.common.AnyMessage;
 import com.hugokindel.bot.common.CommandMessage;
 import com.hugokindel.bot.common.Discord;
 import com.hugokindel.bot.music.MusicBot;
