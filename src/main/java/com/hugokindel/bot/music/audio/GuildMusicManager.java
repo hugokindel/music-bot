@@ -2,6 +2,7 @@ package com.hugokindel.bot.music.audio;
 
 import com.hugokindel.bot.music.MusicBot;
 import com.hugokindel.common.cli.print.Out;
+import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 
@@ -63,8 +64,10 @@ public class GuildMusicManager {
 
         ChannelMusicManager musicManager = channelManagers.get(channelId);
 
-        availableWorkers.offer(musicManager.workerId);
+        int workerId = musicManager.workerId;
+        availableWorkers.offer(workerId);
         musicManager.destroy();
         channelManagers.remove(channelId);
+        MusicBot.get().workers.get(workerId).client.getPresence().setActivity(Activity.listening("rien"));
     }
 }

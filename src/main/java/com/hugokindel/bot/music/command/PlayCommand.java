@@ -33,7 +33,9 @@ public class PlayCommand {
 
         public List<String> wait = new ArrayList<>();
 
-        public List<String> errors = new ArrayList<>();
+        public List<String> errorsCantLoad = new ArrayList<>();
+
+        public List<String> errorsCantFind = new ArrayList<>();
 
         public MessageEmbed build(ChannelMusicManager channelManager, CommandMessage message) {
             EmbedBuilder eb = new EmbedBuilder();
@@ -65,6 +67,23 @@ public class PlayCommand {
                 eb.addField(new MessageEmbed.Field(
                         "Ajout à la file d'attente",
                         queue.toString(),
+                        false
+                ));
+            }
+            if (!errorsCantLoad.isEmpty() || !errorsCantFind.isEmpty()) {
+                String errors = "";
+                if (!errorsCantFind.isEmpty()) {
+                    errors += String.format("- %d pistes audio introuvables.", errorsCantFind.size());
+                }
+                if (!errorsCantLoad.isEmpty()) {
+                    if (errors.isEmpty()) {
+                        errors += "\n";
+                    }
+                    errors += String.format("- %d pistes audio impossible à charger.", errorsCantFind.size());
+                }
+                eb.addField(new MessageEmbed.Field(
+                        "Erreurs",
+                        errors,
                         false
                 ));
             }
@@ -129,10 +148,6 @@ public class PlayCommand {
                             }
 
                             for (int i = 0; i < tracks.getItems().length; i++) {
-                                if (!MusicBot.get().getGuildManager(message.guild).hasChannelManager(message.member.getVoiceState().getChannel())) {
-                                    return;
-                                }
-
                                 Track request2 = MusicBot.get().spotifyApi.getTrack(tracks.getItems()[i].getTrack().getId()).build().execute();
                                 search = "ytsearch: " + request2.getArtists()[0].getName() + " " + request2.getName();
                                 doSearch(channelManager, search, message, false, playingMessage);
@@ -153,10 +168,6 @@ public class PlayCommand {
                             }
 
                             for (int i = 0; i < tracks.getItems().length; i++) {
-                                if (!MusicBot.get().getGuildManager(message.guild).hasChannelManager(message.member.getVoiceState().getChannel())) {
-                                    return;
-                                }
-
                                 search = "ytsearch: " + tracks.getItems()[i].getArtists()[0].getName() + " " + tracks.getItems()[i].getName();
                                 doSearch(channelManager, search, message, false, playingMessage);
                             }
@@ -204,19 +215,13 @@ public class PlayCommand {
         MusicBot.get().playerManager.loadItemOrdered(channelManager, query, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
-                if (!MusicBot.get().getGuildManager(message.guild).hasChannelManager(message.member.getVoiceState().getChannel())) {
-                    return;
-                }
-
                 if (!channelManager.trackScheduler.playing) {
                     if (message != null && playingMessage != null) {
-                        Out.println("qsd");
                         playingMessage.start = track.getInfo().title;
                         message.sendEmbed(playingMessage.build(channelManager, message));
                     }
                 } else {
                     if (message != null && playingMessage != null) {
-                        Out.println("ads");
                         playingMessage.wait.add(track.getInfo().title);
                         message.sendEmbed(playingMessage.build(channelManager, message));
                     }
@@ -231,32 +236,22 @@ public class PlayCommand {
 
             @Override
             public void playlistLoaded(AudioPlaylist playlist) {
-                if (!MusicBot.get().getGuildManager(message.guild).hasChannelManager(message.member.getVoiceState().getChannel())) {
-                    return;
-                }
-
                 if (!isUrl) {
                     trackLoaded(playlist.getTracks().get(0));
                     return;
                 }
 
                 for (int i = 0; i < playlist.getTracks().size(); i++) {
-                    if (!MusicBot.get().getGuildManager(message.guild).hasChannelManager(message.member.getVoiceState().getChannel())) {
-                        return;
-                    }
-
                     AudioTrack track = playlist.getTracks().get(i);
 
                     if (!channelManager.trackScheduler.playing) {
                         if (message != null && playingMessage != null) {
-                            Out.println("sdf");
                             playingMessage.start = track.getInfo().title;
                             message.sendEmbed(playingMessage.build(channelManager, message));
 
                         }
                     } else {
                         if (message != null && playingMessage != null) {
-                            Out.println("gfh");
                             playingMessage.wait.add(track.getInfo().title);
                             message.sendEmbed(playingMessage.build(channelManager, message));
                         }
@@ -272,25 +267,19 @@ public class PlayCommand {
 
             @Override
             public void noMatches() {
-                if (!MusicBot.get().getGuildManager(message.guild).hasChannelManager(message.member.getVoiceState().getChannel())) {
-                    return;
-                }
-
                 if (message != null) {
-                    message.appendAndSendEmbed("Impossible de trouver la piste voulu !", true);
+                    playingMessage.errorsCantFind.add("");
+                    message.sendEmbed(playingMessage.build(channelManager, message));
                 }
             }
 
             @Override
             public void loadFailed(FriendlyException exception) {
-                if (!MusicBot.get().getGuildManager(message.guild).hasChannelManager(message.member.getVoiceState().getChannel())) {
-                    return;
-                }
-
                 exception.printStackTrace();
 
                 if (message != null) {
-                    message.appendAndSendEmbed("Impossible de jouer la piste voulu !", true);
+                    playingMessage.errorsCantLoad.add("");
+                    message.sendEmbed(playingMessage.build(channelManager, message));
                 }
             }
         });
