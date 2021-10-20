@@ -53,9 +53,22 @@ public class ShuffleCommand {
                 queue.append(i + 1).append(". ").append(tracks[i].getInfo().title);
             }
 
+            String waitList = queue.toString();
+
+            boolean cut = false;
+
+            while (waitList.length() > 1020) {
+                cut = true;
+                waitList = waitList.substring(0, waitList.lastIndexOf('\n'));
+            }
+
+            if (cut) {
+                waitList += "\n...";
+            }
+
             eb.addField(new MessageEmbed.Field(
                     "File d'attente",
-                    queue.toString(),
+                    waitList,
                     false
             ));
         }

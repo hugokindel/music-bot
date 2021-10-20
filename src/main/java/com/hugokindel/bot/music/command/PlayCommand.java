@@ -39,7 +39,7 @@ public class PlayCommand {
 
         public List<String> errorsCantFind = new ArrayList<>();
 
-        public MessageEmbed build(ChannelMusicManager channelManager, CommandMessage message) {
+        public MessageEmbed build(ChannelMusicManager channelManager, CommandMessage message, int oldQueueLength) {
             EmbedBuilder eb = new EmbedBuilder();
             if (message.thumbnailUrl != null && !message.thumbnailUrl.isEmpty()) {
                 eb.setThumbnail(message.thumbnailUrl);
@@ -58,17 +58,38 @@ public class PlayCommand {
                 StringBuilder queue = new StringBuilder();
                 String[] tracks = wait.toArray(new String[0]);
 
+                int q = oldQueueLength;
+
                 for (int i = 0; i < wait.size(); i++) {
                     if (queue.length() > 0) {
                         queue.append("\n");
                     }
 
-                    queue.append(i + 1).append(". ").append(tracks[i]);
+                    int num = i + 1;
+
+                    if (start.isEmpty()) {
+                        num += q;
+                    }
+
+                    queue.append(num).append(". ").append(tracks[i]);
+                }
+
+                String waitList = queue.toString();
+
+                boolean cut = false;
+
+                while (waitList.length() > 1020) {
+                    cut = true;
+                    waitList = waitList.substring(0, waitList.lastIndexOf('\n'));
+                }
+
+                if (cut) {
+                    waitList += "\n...";
                 }
 
                 eb.addField(new MessageEmbed.Field(
                         "Ajout à la file d'attente",
-                        queue.toString(),
+                        waitList,
                         false
                 ));
             }
@@ -109,6 +130,8 @@ public class PlayCommand {
 
         ChannelMusicManager channelManager = MusicBot.get().getGuildManager(message.guild).getChannelManager(message.member.getVoiceState().getChannel());
         channelManager.messageChannel = message.messageChannel;
+
+        int oldQueueLength = channelManager.trackScheduler.queue.size();
 
         String search = message.getOptionsAsString();
 
@@ -152,7 +175,7 @@ public class PlayCommand {
                             for (int i = 0; i < tracks.getItems().length; i++) {
                                 Track request2 = MusicBot.get().spotifyApi.getTrack(tracks.getItems()[i].getTrack().getId()).build().execute();
                                 search = "ytsearch: " + request2.getArtists()[0].getName() + " " + request2.getName();
-                                doSearch(channelManager, search, message, false, playingMessage);
+                                doSearch(channelManager, search, message, false, playingMessage, oldQueueLength);
                             }
 
                             return;
@@ -171,7 +194,7 @@ public class PlayCommand {
 
                             for (int i = 0; i < tracks.getItems().length; i++) {
                                 search = "ytsearch: " + tracks.getItems()[i].getArtists()[0].getName() + " " + tracks.getItems()[i].getName();
-                                doSearch(channelManager, search, message, false, playingMessage);
+                                doSearch(channelManager, search, message, false, playingMessage, oldQueueLength);
                             }
 
                             return;
@@ -204,14 +227,14 @@ public class PlayCommand {
             search = "ytsearch:" + search;
         }
 
-        doSearch(channelManager, search, message, isUrl, playingMessage);
+        doSearch(channelManager, search, message, isUrl, playingMessage, oldQueueLength);
     }
 
     public static void play(Guild guild, VoiceChannel voiceChannel, String query) {
-        doSearch(MusicBot.get().getGuildManager(guild).getChannelManager(voiceChannel), query, null, true, null);
+        doSearch(MusicBot.get().getGuildManager(guild).getChannelManager(voiceChannel), query, null, true, null, 0);
     }
 
-    public static void doSearch(ChannelMusicManager channelManager, String query, CommandMessage message, boolean isUrl, PlayingMessage playingMessage) {
+    public static void doSearch(ChannelMusicManager channelManager, String query, CommandMessage message, boolean isUrl, PlayingMessage playingMessage, int oldQueueLength) {
         MusicBot.get().playerManager.loadItemOrdered(channelManager, query, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
@@ -224,12 +247,12 @@ public class PlayCommand {
                 if (!channelManager.trackScheduler.playing) {
                     if (message != null && playingMessage != null) {
                         playingMessage.start = track.getInfo().title;
-                        message.sendEmbed(playingMessage.build(channelManager, message));
+                        message.sendEmbed(playingMessage.build(channelManager, message, oldQueueLength));
                     }
                 } else {
                     if (message != null && playingMessage != null) {
                         playingMessage.wait.add(track.getInfo().title);
-                        message.sendEmbed(playingMessage.build(channelManager, message));
+                        message.sendEmbed(playingMessage.build(channelManager, message, oldQueueLength));
                     }
                 }
 
@@ -259,13 +282,13 @@ public class PlayCommand {
                     if (!channelManager.trackScheduler.playing) {
                         if (message != null && playingMessage != null) {
                             playingMessage.start = track.getInfo().title;
-                            message.sendEmbed(playingMessage.build(channelManager, message));
+                            message.sendEmbed(playingMessage.build(channelManager, message, oldQueueLength));
 
                         }
                     } else {
                         if (message != null && playingMessage != null) {
                             playingMessage.wait.add(track.getInfo().title);
-                            message.sendEmbed(playingMessage.build(channelManager, message));
+                            message.sendEmbed(playingMessage.build(channelManager, message, oldQueueLength));
                         }
                     }
 
@@ -281,7 +304,7 @@ public class PlayCommand {
             public void noMatches() {
                 if (message != null) {
                     playingMessage.errorsCantFind.add("");
-                    message.sendEmbed(playingMessage.build(channelManager, message));
+                    message.sendEmbed(playingMessage.build(channelManager, message, oldQueueLength));
                 }
             }
 
@@ -291,7 +314,7 @@ public class PlayCommand {
 
                 if (message != null) {
                     playingMessage.errorsCantLoad.add("");
-                    message.sendEmbed(playingMessage.build(channelManager, message));
+                    message.sendEmbed(playingMessage.build(channelManager, message, oldQueueLength));
                 }
             }
         });

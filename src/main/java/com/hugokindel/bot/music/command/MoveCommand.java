@@ -10,7 +10,8 @@ import net.azzerial.slash.annotations.OptionType;
 import net.azzerial.slash.annotations.Slash;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 
-import java.util.List;
+import java.util.Iterator;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Slash.Tag("move")
 @Slash.Command(name = "move", description = "Déplace un élément de la file d'attente.", options = {
@@ -52,14 +53,43 @@ public class MoveCommand {
                 if (i <= channelManager.trackScheduler.queue.size()) {
                     if (p >= 1) {
                         if (p <= channelManager.trackScheduler.queue.size() + 1) {
-                            AudioTrack track = ((List<AudioTrack>)channelManager.trackScheduler.queue).get(i - 1);
-                            ((List<AudioTrack>)channelManager.trackScheduler.queue).remove(i - 1);
+                            ConcurrentLinkedQueue<AudioTrack> queue = new ConcurrentLinkedQueue<>();
+                            AudioTrack neededI = null;
+                            AudioTrack neededP = null;
 
-                            if (p == channelManager.trackScheduler.queue.size() + 1) {
-                                ((List<AudioTrack>)channelManager.trackScheduler.queue).add(track);
-                            } else {
-                                ((List<AudioTrack>)channelManager.trackScheduler.queue).add(p - 1, track);
+                            Iterator<AudioTrack> iterator = channelManager.trackScheduler.queue.iterator();
+                            int i2 = 1;
+
+                            while (iterator.hasNext()) {
+                                if (i == i2) {
+                                    neededI = iterator.next();
+                                } else if (p == i2) {
+                                    neededP = iterator.next();
+                                } else {
+                                    iterator.next();
+                                }
+                                i2++;
                             }
+
+                            iterator = channelManager.trackScheduler.queue.iterator();
+                            i2 = 1;
+
+                            while (iterator.hasNext()) {
+                                if (i == i2) {
+                                    if (neededP != null) {
+                                        queue.add(neededP);
+                                    }
+                                    iterator.next();
+                                } else if (p == i2) {
+                                    queue.add(neededI);
+                                    iterator.next();
+                                } else {
+                                    queue.add(iterator.next());
+                                }
+                                i2++;
+                            }
+
+                            channelManager.trackScheduler.queue = queue;
 
                             message.sendEmbed(String.format("La piste audio a bien été deplacé de %d à %d.", i, p));
                         } else {
@@ -80,6 +110,6 @@ public class MoveCommand {
     }
 
     public static String getTitle() {
-        return "Suppression d'une piste";
+        return "Déplacement d'une piste";
     }
 }

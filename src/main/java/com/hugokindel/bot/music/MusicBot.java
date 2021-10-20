@@ -48,7 +48,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@Command(name = "bot", version = "1.0.0", description = "Un robot pour le streaming de musique sur la plateforme Discord.")
+@Command(name = "bot", version = "1.1.0", description = "Un robot pour le streaming de musique sur la plateforme Discord.")
 public class MusicBot extends BaseProgram {
     public static final Color COLOR_RED = new Color(255, 0, 0);
 
@@ -319,6 +319,7 @@ public class MusicBot extends BaseProgram {
                 if (c.getName().contains(".empty.")) {
                     Out.println(String.format("Deleting command `%s`...", tag.value()));
                     slash.getCommand(tag.value()).deleteGlobal();
+                    slash.getCommand(tag.value()).deleteGuild(config.guildId);
                 } else {
                     Out.println(String.format("Creating command `%s`...", tag.value()));
                     slash.getCommand(tag.value()).upsertGlobal();

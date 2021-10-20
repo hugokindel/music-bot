@@ -15,7 +15,7 @@ plugins {
 
 // Project variables.
 group = "com.hugokindel"
-version = "1.0"
+version = "1.1.0"
 
 repositories {
     // Maven repository.

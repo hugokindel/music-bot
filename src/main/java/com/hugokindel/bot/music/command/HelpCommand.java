@@ -26,6 +26,7 @@ public class HelpCommand {
                 "Salut, je m'appelle __**FORX-BOT**__ !\n" +
                 "\n" +
                 "Je suis un robot de musique développé spécifiquement pour le serveur des **PRO PLAYERS** et suis capable de jouer de la musique dans tous vos salon vocaux simultanément.\n" +
+                "Si vous voulez appeler une commande, pensez à utiliser le préfix `/` ou `!`.\n" +
                 "\n" +
                 "En cas de soucis ou d'idées, veuillez contactez " + Discord.mentionCreator() + ".\n" +
                 "\n" +

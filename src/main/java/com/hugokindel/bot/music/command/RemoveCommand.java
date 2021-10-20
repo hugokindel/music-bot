@@ -10,7 +10,9 @@ import net.azzerial.slash.annotations.OptionType;
 import net.azzerial.slash.annotations.Slash;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 
+import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Slash.Tag("remove")
 @Slash.Command(name = "remove", description = "Efface la piste voulue de la file d'attente.", options = {
@@ -43,7 +45,22 @@ public class RemoveCommand {
 
             if (i >= 1) {
                 if (i <= channelManager.trackScheduler.queue.size()) {
-                    ((List<AudioTrack>)channelManager.trackScheduler.queue).remove(i - 1);
+                    ConcurrentLinkedQueue<AudioTrack> queue = new ConcurrentLinkedQueue<>();
+
+                    Iterator<AudioTrack> iterator = channelManager.trackScheduler.queue.iterator();
+                    int i2 = 1;
+
+                    while (iterator.hasNext()) {
+                        if (i == i2) {
+                            iterator.next();
+                        } else {
+                            queue.add(iterator.next());
+                        }
+                        i2++;
+                    }
+
+                    channelManager.trackScheduler.queue = queue;
+
                     message.sendEmbed(String.format("La piste audio à l'index %d a bien été effacé.", i));
                 } else {
                     message.sendErrorEmbed(String.format("L'index ne peut pas être supérieur à %d (la longueur de la file d'attente) !", channelManager.trackScheduler.queue.size()));

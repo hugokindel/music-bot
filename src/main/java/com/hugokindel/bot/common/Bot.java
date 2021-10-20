@@ -1,18 +1,11 @@
-// TODO: BUG COULDNT SEND EMBD
-
 package com.hugokindel.bot.common;
 
 import com.hugokindel.bot.music.MusicBot;
-import com.hugokindel.bot.music.command.*;
-import com.hugokindel.common.cli.option.annotation.Command;
-import com.hugokindel.common.cli.print.Out;
 import net.azzerial.slash.annotations.Slash;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
@@ -20,28 +13,17 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.jetbrains.annotations.NotNull;
-import org.reflections8.Reflections;
-import org.reflections8.scanners.ResourcesScanner;
-import org.reflections8.scanners.SubTypesScanner;
-import org.reflections8.util.ClasspathHelper;
-import org.reflections8.util.ConfigurationBuilder;
-import org.reflections8.util.FilterBuilder;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.security.auth.login.LoginException;
-import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
 
 public class Bot extends ListenerAdapter {
     public enum Type {
         Host,
         Worker
     }
-
 
     public final static GatewayIntent[] INTENTS = {GatewayIntent.DIRECT_MESSAGES, GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MESSAGE_REACTIONS, GatewayIntent.GUILD_VOICE_STATES};
 
@@ -82,13 +64,13 @@ public class Bot extends ListenerAdapter {
                 command = command.substring(1);
             }
 
-            if (command.startsWith("/")) {
+            if (command.startsWith("/") || command.startsWith("!")) {
                 boolean found = false;
 
                 command = command.substring(1).split(" ")[0];
 
                 for (Class<?> c : MusicBot.get().commandClasses) {
-                    if (c.isAnnotationPresent(Slash.Tag.class)) {
+                    if (c.isAnnotationPresent(Slash.Tag.class) && !c.getName().contains(".empty")) {
                         Slash.Tag tag = c.getAnnotation(Slash.Tag.class);
 
                         if (command.equals(tag.value())) {

@@ -78,7 +78,7 @@ public class CommandMessage {
         while (command.charAt(0) == ' ') {
             command = command.substring(1);
         }
-        if (command.startsWith("/")) {
+        if (command.startsWith("/") || command.startsWith("!")) {
             String[] split = command.split(" ");
             this.command = split[0].substring(1);
             if (split.length > 1) {

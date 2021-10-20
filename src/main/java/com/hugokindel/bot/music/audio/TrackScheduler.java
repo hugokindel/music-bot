@@ -8,19 +8,18 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import net.dv8tion.jda.api.entities.Activity;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class TrackScheduler extends AudioEventAdapter {
     public ChannelMusicManager channelManager;
 
     public AudioPlayer player;
 
-    public Queue<AudioTrack> queue;
+    public ConcurrentLinkedQueue<AudioTrack> queue;
 
-    public Queue<String> queueThumbnails;
+    public ConcurrentLinkedQueue<String> queueThumbnails;
 
     public String currentThumbnail = null;
 
@@ -32,18 +31,20 @@ public class TrackScheduler extends AudioEventAdapter {
 
     public AudioTrack lastTrack;
 
+    private ReentrantLock mutex = new ReentrantLock();
+
     public TrackScheduler(ChannelMusicManager channelManager, AudioPlayer player) {
         this.channelManager = channelManager;
         this.player = player;
-        this.queue = new LinkedList<>();
-        this.queueThumbnails = new LinkedList<>();
+        this.queue = new ConcurrentLinkedQueue<>();
+        this.queueThumbnails = new ConcurrentLinkedQueue<>();
     }
 
-    public void queue(AudioTrack track) {
+    public synchronized void queue(AudioTrack track) {
         queue(track, null);
     }
 
-    public void queue(AudioTrack track, String thumbnail) {
+    public synchronized void queue(AudioTrack track, String thumbnail) {
         if (!player.startTrack(track, true)) {
             queue.offer(track);
             queueThumbnails.offer(thumbnail);
@@ -69,22 +70,28 @@ public class TrackScheduler extends AudioEventAdapter {
             playing = false;
             MusicBot.get().workers.get(channelManager.workerId).client.getPresence().setActivity(Activity.listening("rien"));
         } else if (endReason.mayStartNext || isSkipping) {
-            if (looping) {
+            if (looping && !isSkipping) {
                 player.startTrack(lastTrack.makeClone(), false);
             } else {
                 player.startTrack(queue.poll(), false);
                 currentThumbnail = queueThumbnails.poll();
             }
         }
+
+        isSkipping = false;
     }
 
-    public void skipTrack() {
+    public synchronized void skipTrack() {
         isSkipping = true;
         player.stopTrack();
     }
 
-    public void shuffle()
+    public synchronized void shuffle()
     {
-        Collections.shuffle((List<?>) queue);
+        AudioTrack[] array = new AudioTrack[queue.size()];
+        queue.toArray(array);
+        List<AudioTrack> list = Arrays.asList(array);
+        Collections.shuffle(list);
+        queue = new ConcurrentLinkedQueue<>(list);
     }
 }
