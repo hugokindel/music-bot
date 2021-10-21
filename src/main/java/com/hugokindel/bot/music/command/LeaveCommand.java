@@ -25,10 +25,6 @@ public class LeaveCommand {
         ChannelMusicManager channelManager = MusicBot.get().getGuildManager(message.guild).getChannelManager(message.member.getVoiceState().getChannel());
         channelManager.messageChannel = message.messageChannel;
 
-        if (!Discord.checkSongPlaying(message, channelManager)) {
-            return;
-        }
-
         MusicBot.get().getGuildManager(message.guild).freeChannelManager(message.member.getVoiceState().getChannel());
 
         message.sendEmbed("Le robot va être déconnecté du salon vocal et sa file d'attente sera effacé.");
