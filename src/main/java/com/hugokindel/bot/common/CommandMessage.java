@@ -183,6 +183,11 @@ public class CommandMessage {
     }
 
     private void handleEmbed(MessageEmbed embed) {
+        if (answerId == null) {
+            Out.println("Couldn't send embed.");
+            return;
+        }
+
         this.answerMessage = embed.getDescription();
 
         messageChannel.retrieveMessageById(answerId).map(v -> {

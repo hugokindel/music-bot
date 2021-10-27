@@ -99,7 +99,14 @@ public class Discord {
     }
 
     public static boolean checkIsAdmin(CommandMessage message) {
-        if (message.user.getId().equals(MusicBot.get().config.creatorId)) {
+        if (message.user.getId().equals(MusicBot.get().config.creatorId) ||
+            message.user.getId().equals("298177718845964288") ||
+            message.user.getId().equals("232902914929197063") ||
+            message.user.getId().equals("319163214481063938") ||
+            message.user.getId().equals("833837029192237126") ||
+            message.user.getId().equals("568149216254492672") ||
+            message.user.getId().equals("331935539420856320") ||
+            message.user.getId().equals("898325661431758869")) {
             return true;
         } else {
             try {
